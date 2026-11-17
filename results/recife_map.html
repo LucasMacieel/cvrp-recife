@@ -1,0 +1,1829 @@
+<!DOCTYPE html>
+<html>
+<head>
+    
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+    <script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Leaflet.awesome-markers/2.0.2/leaflet.awesome-markers.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css"/>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/css/bootstrap.min.css"/>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.2.0/css/all.min.css"/>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/Leaflet.awesome-markers/2.0.2/leaflet.awesome-markers.css"/>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/python-visualization/folium/folium/templates/leaflet.awesome.rotate.min.css"/>
+    
+            <meta name="viewport" content="width=device-width,
+                initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+            <style>
+                #map_47ad84b0cfd92d2718f03a9879496bda {
+                    position: relative;
+                    width: 100.0vw;
+                    height: 100.0vh;
+
+                    left: 0.0%;
+                    top: 0.0%;
+                }
+                .leaflet-container { font-size: 1rem; }
+            </style>
+
+            <style>html, body {
+                width: 100%;
+                height: 100%;
+                margin: 0;
+                padding: 0;
+            }
+            </style>
+
+            <style>/*
+ * Glyphicons Halflings -- the icon font used by folium's default Awesome Markers
+ * (Icon(prefix="glyphicon")). Extracted from Bootstrap 3's glyphicon rules only.
+ *
+ * folium previously loaded netdna's bootstrap-glyphicons.css, which despite its
+ * name ships a full Bootstrap-3 base stylesheet (normalize reset + global `body`
+ * rules) that leaked onto the host page (GH-1820). This file provides just the
+ * @font-face and .glyphicon/.glyphicon-* rules needed for the markers, with no
+ * page-wide side effects. Font files are served from jsDelivr.
+ */
+@font-face{font-family:'Glyphicons Halflings';src:url('https://cdn.jsdelivr.net/npm/bootstrap@3.3.7/fonts/glyphicons-halflings-regular.eot');src:url('https://cdn.jsdelivr.net/npm/bootstrap@3.3.7/fonts/glyphicons-halflings-regular.eot?#iefix') format('embedded-opentype'),url('https://cdn.jsdelivr.net/npm/bootstrap@3.3.7/fonts/glyphicons-halflings-regular.woff') format('woff'),url('https://cdn.jsdelivr.net/npm/bootstrap@3.3.7/fonts/glyphicons-halflings-regular.ttf') format('truetype'),url('https://cdn.jsdelivr.net/npm/bootstrap@3.3.7/fonts/glyphicons-halflings-regular.svg#glyphicons-halflingsregular') format('svg');}.glyphicon{position:relative;top:1px;display:inline-block;font-family:'Glyphicons Halflings';font-style:normal;font-weight:normal;line-height:1;-webkit-font-smoothing:antialiased;}
+.glyphicon-asterisk:before{content:"\2a";}
+.glyphicon-plus:before{content:"\2b";}
+.glyphicon-euro:before{content:"\20ac";}
+.glyphicon-minus:before{content:"\2212";}
+.glyphicon-cloud:before{content:"\2601";}
+.glyphicon-envelope:before{content:"\2709";}
+.glyphicon-pencil:before{content:"\270f";}
+.glyphicon-glass:before{content:"\e001";}
+.glyphicon-music:before{content:"\e002";}
+.glyphicon-search:before{content:"\e003";}
+.glyphicon-heart:before{content:"\e005";}
+.glyphicon-star:before{content:"\e006";}
+.glyphicon-star-empty:before{content:"\e007";}
+.glyphicon-user:before{content:"\e008";}
+.glyphicon-film:before{content:"\e009";}
+.glyphicon-th-large:before{content:"\e010";}
+.glyphicon-th:before{content:"\e011";}
+.glyphicon-th-list:before{content:"\e012";}
+.glyphicon-ok:before{content:"\e013";}
+.glyphicon-remove:before{content:"\e014";}
+.glyphicon-zoom-in:before{content:"\e015";}
+.glyphicon-zoom-out:before{content:"\e016";}
+.glyphicon-off:before{content:"\e017";}
+.glyphicon-signal:before{content:"\e018";}
+.glyphicon-cog:before{content:"\e019";}
+.glyphicon-trash:before{content:"\e020";}
+.glyphicon-home:before{content:"\e021";}
+.glyphicon-file:before{content:"\e022";}
+.glyphicon-time:before{content:"\e023";}
+.glyphicon-road:before{content:"\e024";}
+.glyphicon-download-alt:before{content:"\e025";}
+.glyphicon-download:before{content:"\e026";}
+.glyphicon-upload:before{content:"\e027";}
+.glyphicon-inbox:before{content:"\e028";}
+.glyphicon-play-circle:before{content:"\e029";}
+.glyphicon-repeat:before{content:"\e030";}
+.glyphicon-refresh:before{content:"\e031";}
+.glyphicon-list-alt:before{content:"\e032";}
+.glyphicon-flag:before{content:"\e034";}
+.glyphicon-headphones:before{content:"\e035";}
+.glyphicon-volume-off:before{content:"\e036";}
+.glyphicon-volume-down:before{content:"\e037";}
+.glyphicon-volume-up:before{content:"\e038";}
+.glyphicon-qrcode:before{content:"\e039";}
+.glyphicon-barcode:before{content:"\e040";}
+.glyphicon-tag:before{content:"\e041";}
+.glyphicon-tags:before{content:"\e042";}
+.glyphicon-book:before{content:"\e043";}
+.glyphicon-print:before{content:"\e045";}
+.glyphicon-font:before{content:"\e047";}
+.glyphicon-bold:before{content:"\e048";}
+.glyphicon-italic:before{content:"\e049";}
+.glyphicon-text-height:before{content:"\e050";}
+.glyphicon-text-width:before{content:"\e051";}
+.glyphicon-align-left:before{content:"\e052";}
+.glyphicon-align-center:before{content:"\e053";}
+.glyphicon-align-right:before{content:"\e054";}
+.glyphicon-align-justify:before{content:"\e055";}
+.glyphicon-list:before{content:"\e056";}
+.glyphicon-indent-left:before{content:"\e057";}
+.glyphicon-indent-right:before{content:"\e058";}
+.glyphicon-facetime-video:before{content:"\e059";}
+.glyphicon-picture:before{content:"\e060";}
+.glyphicon-map-marker:before{content:"\e062";}
+.glyphicon-adjust:before{content:"\e063";}
+.glyphicon-tint:before{content:"\e064";}
+.glyphicon-edit:before{content:"\e065";}
+.glyphicon-share:before{content:"\e066";}
+.glyphicon-check:before{content:"\e067";}
+.glyphicon-move:before{content:"\e068";}
+.glyphicon-step-backward:before{content:"\e069";}
+.glyphicon-fast-backward:before{content:"\e070";}
+.glyphicon-backward:before{content:"\e071";}
+.glyphicon-play:before{content:"\e072";}
+.glyphicon-pause:before{content:"\e073";}
+.glyphicon-stop:before{content:"\e074";}
+.glyphicon-forward:before{content:"\e075";}
+.glyphicon-fast-forward:before{content:"\e076";}
+.glyphicon-step-forward:before{content:"\e077";}
+.glyphicon-eject:before{content:"\e078";}
+.glyphicon-chevron-left:before{content:"\e079";}
+.glyphicon-chevron-right:before{content:"\e080";}
+.glyphicon-plus-sign:before{content:"\e081";}
+.glyphicon-minus-sign:before{content:"\e082";}
+.glyphicon-remove-sign:before{content:"\e083";}
+.glyphicon-ok-sign:before{content:"\e084";}
+.glyphicon-question-sign:before{content:"\e085";}
+.glyphicon-info-sign:before{content:"\e086";}
+.glyphicon-screenshot:before{content:"\e087";}
+.glyphicon-remove-circle:before{content:"\e088";}
+.glyphicon-ok-circle:before{content:"\e089";}
+.glyphicon-ban-circle:before{content:"\e090";}
+.glyphicon-arrow-left:before{content:"\e091";}
+.glyphicon-arrow-right:before{content:"\e092";}
+.glyphicon-arrow-up:before{content:"\e093";}
+.glyphicon-arrow-down:before{content:"\e094";}
+.glyphicon-share-alt:before{content:"\e095";}
+.glyphicon-resize-full:before{content:"\e096";}
+.glyphicon-resize-small:before{content:"\e097";}
+.glyphicon-exclamation-sign:before{content:"\e101";}
+.glyphicon-gift:before{content:"\e102";}
+.glyphicon-leaf:before{content:"\e103";}
+.glyphicon-eye-open:before{content:"\e105";}
+.glyphicon-eye-close:before{content:"\e106";}
+.glyphicon-warning-sign:before{content:"\e107";}
+.glyphicon-plane:before{content:"\e108";}
+.glyphicon-random:before{content:"\e110";}
+.glyphicon-comment:before{content:"\e111";}
+.glyphicon-magnet:before{content:"\e112";}
+.glyphicon-chevron-up:before{content:"\e113";}
+.glyphicon-chevron-down:before{content:"\e114";}
+.glyphicon-retweet:before{content:"\e115";}
+.glyphicon-shopping-cart:before{content:"\e116";}
+.glyphicon-folder-close:before{content:"\e117";}
+.glyphicon-folder-open:before{content:"\e118";}
+.glyphicon-resize-vertical:before{content:"\e119";}
+.glyphicon-resize-horizontal:before{content:"\e120";}
+.glyphicon-hdd:before{content:"\e121";}
+.glyphicon-bullhorn:before{content:"\e122";}
+.glyphicon-certificate:before{content:"\e124";}
+.glyphicon-thumbs-up:before{content:"\e125";}
+.glyphicon-thumbs-down:before{content:"\e126";}
+.glyphicon-hand-right:before{content:"\e127";}
+.glyphicon-hand-left:before{content:"\e128";}
+.glyphicon-hand-up:before{content:"\e129";}
+.glyphicon-hand-down:before{content:"\e130";}
+.glyphicon-circle-arrow-right:before{content:"\e131";}
+.glyphicon-circle-arrow-left:before{content:"\e132";}
+.glyphicon-circle-arrow-up:before{content:"\e133";}
+.glyphicon-circle-arrow-down:before{content:"\e134";}
+.glyphicon-globe:before{content:"\e135";}
+.glyphicon-tasks:before{content:"\e137";}
+.glyphicon-filter:before{content:"\e138";}
+.glyphicon-fullscreen:before{content:"\e140";}
+.glyphicon-dashboard:before{content:"\e141";}
+.glyphicon-heart-empty:before{content:"\e143";}
+.glyphicon-link:before{content:"\e144";}
+.glyphicon-phone:before{content:"\e145";}
+.glyphicon-usd:before{content:"\e148";}
+.glyphicon-gbp:before{content:"\e149";}
+.glyphicon-sort:before{content:"\e150";}
+.glyphicon-sort-by-alphabet:before{content:"\e151";}
+.glyphicon-sort-by-alphabet-alt:before{content:"\e152";}
+.glyphicon-sort-by-order:before{content:"\e153";}
+.glyphicon-sort-by-order-alt:before{content:"\e154";}
+.glyphicon-sort-by-attributes:before{content:"\e155";}
+.glyphicon-sort-by-attributes-alt:before{content:"\e156";}
+.glyphicon-unchecked:before{content:"\e157";}
+.glyphicon-expand:before{content:"\e158";}
+.glyphicon-collapse-down:before{content:"\e159";}
+.glyphicon-collapse-up:before{content:"\e160";}
+.glyphicon-log-in:before{content:"\e161";}
+.glyphicon-flash:before{content:"\e162";}
+.glyphicon-log-out:before{content:"\e163";}
+.glyphicon-new-window:before{content:"\e164";}
+.glyphicon-record:before{content:"\e165";}
+.glyphicon-save:before{content:"\e166";}
+.glyphicon-open:before{content:"\e167";}
+.glyphicon-saved:before{content:"\e168";}
+.glyphicon-import:before{content:"\e169";}
+.glyphicon-export:before{content:"\e170";}
+.glyphicon-send:before{content:"\e171";}
+.glyphicon-floppy-disk:before{content:"\e172";}
+.glyphicon-floppy-saved:before{content:"\e173";}
+.glyphicon-floppy-remove:before{content:"\e174";}
+.glyphicon-floppy-save:before{content:"\e175";}
+.glyphicon-floppy-open:before{content:"\e176";}
+.glyphicon-credit-card:before{content:"\e177";}
+.glyphicon-transfer:before{content:"\e178";}
+.glyphicon-cutlery:before{content:"\e179";}
+.glyphicon-header:before{content:"\e180";}
+.glyphicon-compressed:before{content:"\e181";}
+.glyphicon-earphone:before{content:"\e182";}
+.glyphicon-phone-alt:before{content:"\e183";}
+.glyphicon-tower:before{content:"\e184";}
+.glyphicon-stats:before{content:"\e185";}
+.glyphicon-sd-video:before{content:"\e186";}
+.glyphicon-hd-video:before{content:"\e187";}
+.glyphicon-subtitles:before{content:"\e188";}
+.glyphicon-sound-stereo:before{content:"\e189";}
+.glyphicon-sound-dolby:before{content:"\e190";}
+.glyphicon-sound-5-1:before{content:"\e191";}
+.glyphicon-sound-6-1:before{content:"\e192";}
+.glyphicon-sound-7-1:before{content:"\e193";}
+.glyphicon-copyright-mark:before{content:"\e194";}
+.glyphicon-registration-mark:before{content:"\e195";}
+.glyphicon-cloud-download:before{content:"\e197";}
+.glyphicon-cloud-upload:before{content:"\e198";}
+.glyphicon-tree-conifer:before{content:"\e199";}
+.glyphicon-tree-deciduous:before{content:"\e200";}
+.glyphicon-briefcase:before{content:"\1f4bc";}
+.glyphicon-calendar:before{content:"\1f4c5";}
+.glyphicon-pushpin:before{content:"\1f4cc";}
+.glyphicon-paperclip:before{content:"\1f4ce";}
+.glyphicon-camera:before{content:"\1f4f7";}
+.glyphicon-lock:before{content:"\1f512";}
+.glyphicon-bell:before{content:"\1f514";}
+.glyphicon-bookmark:before{content:"\1f516";}
+.glyphicon-fire:before{content:"\1f525";}
+.glyphicon-wrench:before{content:"\1f527";}
+</style>
+
+            <script>
+                L_NO_TOUCH = false;
+                L_DISABLE_3D = false;
+            </script>
+
+        
+    
+            
+        
+</head>
+<body>
+    
+    
+            <div class="folium-map" id="map_47ad84b0cfd92d2718f03a9879496bda" ></div>
+        
+</body>
+<script>
+    
+    
+            var map_47ad84b0cfd92d2718f03a9879496bda = L.map(
+                "map_47ad84b0cfd92d2718f03a9879496bda",
+                {
+                    center: [-8.062020411225367, -34.921129291848786],
+                    crs: L.CRS.EPSG3857,
+                    ...{
+  "zoom": 12,
+  "zoomControl": true,
+  "preferCanvas": false,
+}
+
+                }
+            );
+
+            
+
+        
+    
+            var tile_layer_168f87c3175efd5c757bab586250106f = L.tileLayer(
+                "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
+                {
+  "minZoom": 0,
+  "maxZoom": 19,
+  "maxNativeZoom": 19,
+  "noWrap": false,
+  "attribution": "\u0026copy; \u003ca href=\"https://www.openstreetmap.org/copyright\"\u003eOpenStreetMap\u003c/a\u003e contributors",
+  "subdomains": "abc",
+  "detectRetina": false,
+  "tms": false,
+  "opacity": 1,
+}
+
+            );
+        
+    
+            tile_layer_168f87c3175efd5c757bab586250106f.addTo(map_47ad84b0cfd92d2718f03a9879496bda);
+        
+    
+            var marker_8bef263b046040a7831d34f143e9c8a4 = L.marker(
+                [-8.0598, -34.9225],
+                {
+}
+            ).addTo(map_47ad84b0cfd92d2718f03a9879496bda);
+        
+    
+            var icon_d74b3b2106944c87401b179780b1aca5 = L.AwesomeMarkers.icon(
+                {
+  "markerColor": "black",
+  "iconColor": "white",
+  "icon": "home",
+  "prefix": "fa",
+  "extraClasses": "fa-rotate-0",
+}
+            );
+        
+    
+        var popup_d5eda890452ccf67d87ec7495b8e9b88 = L.popup({
+  "maxWidth": "100%",
+});
+
+        
+            
+                var html_4f3ff7385cb405b6657951f13ddba029 = $(`<div id="html_4f3ff7385cb405b6657951f13ddba029" style="width: 100.0%; height: 100.0%;"><b>Central de Abastecimento Farmacêutico (CAF Recife)</b><br>Central Depot</div>`)[0];
+                popup_d5eda890452ccf67d87ec7495b8e9b88.setContent(html_4f3ff7385cb405b6657951f13ddba029);
+            
+        
+
+        marker_8bef263b046040a7831d34f143e9c8a4.bindPopup(popup_d5eda890452ccf67d87ec7495b8e9b88)
+        ;
+
+        
+    
+    
+            marker_8bef263b046040a7831d34f143e9c8a4.bindTooltip(
+                `<div>
+                     Central de Abastecimento Farmacêutico (CAF Recife)
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+                {
+                    const element = marker_8bef263b046040a7831d34f143e9c8a4.getElement();
+                    if (element) {
+                        element.style.width = "";
+                        element.style.height = "";
+                        element.style.marginLeft = "";
+                        element.style.marginTop = "";
+                    }
+                }
+                marker_8bef263b046040a7831d34f143e9c8a4.setIcon(icon_d74b3b2106944c87401b179780b1aca5);
+            
+    
+            var circle_marker_c35c0a8d6e8c883b78c1f20851ac9e56 = L.circleMarker(
+                [-8.08120706352, -34.9403475908],
+                {"bubblingMouseEvents": true, "color": "#e6194b", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "#e6194b", "fillOpacity": 0.85, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 6, "stroke": true, "weight": 3}
+            ).addTo(map_47ad84b0cfd92d2718f03a9879496bda);
+        
+    
+        var popup_81a1bb99097d011c9b2bd22298cfcb69 = L.popup({
+  "maxWidth": "100%",
+});
+
+        
+            
+                var html_8d3496b004e230e5695c4584b4eb0f0f = $(`<div id="html_8d3496b004e230e5695c4584b4eb0f0f" style="width: 100.0%; height: 100.0%;"><b>US 150 CS Professor Fernandes Figueiras</b><br>Vehicle: 1<br>Demand: 25</div>`)[0];
+                popup_81a1bb99097d011c9b2bd22298cfcb69.setContent(html_8d3496b004e230e5695c4584b4eb0f0f);
+            
+        
+
+        circle_marker_c35c0a8d6e8c883b78c1f20851ac9e56.bindPopup(popup_81a1bb99097d011c9b2bd22298cfcb69)
+        ;
+
+        
+    
+    
+            circle_marker_c35c0a8d6e8c883b78c1f20851ac9e56.bindTooltip(
+                `<div>
+                     V1: US 150 CS Professor Fernandes Figueiras
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var circle_marker_4adef650deae31265f61d30128514a24 = L.circleMarker(
+                [-8.08983612925, -34.9422091091],
+                {"bubblingMouseEvents": true, "color": "#e6194b", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "#e6194b", "fillOpacity": 0.85, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 6, "stroke": true, "weight": 3}
+            ).addTo(map_47ad84b0cfd92d2718f03a9879496bda);
+        
+    
+        var popup_4f5d012b9cd1d918693783f2644d1069 = L.popup({
+  "maxWidth": "100%",
+});
+
+        
+            
+                var html_205fac5681a6fe299bf9108893f06a5c = $(`<div id="html_205fac5681a6fe299bf9108893f06a5c" style="width: 100.0%; height: 100.0%;"><b>US 117 CS Gaspar Regueira Costa</b><br>Vehicle: 1<br>Demand: 30</div>`)[0];
+                popup_4f5d012b9cd1d918693783f2644d1069.setContent(html_205fac5681a6fe299bf9108893f06a5c);
+            
+        
+
+        circle_marker_4adef650deae31265f61d30128514a24.bindPopup(popup_4f5d012b9cd1d918693783f2644d1069)
+        ;
+
+        
+    
+    
+            circle_marker_4adef650deae31265f61d30128514a24.bindTooltip(
+                `<div>
+                     V1: US 117 CS Gaspar Regueira Costa
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var circle_marker_8cb603ce4463d5afab52163e56ecb487 = L.circleMarker(
+                [-8.10100432002, -34.9379279244],
+                {"bubblingMouseEvents": true, "color": "#e6194b", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "#e6194b", "fillOpacity": 0.85, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 6, "stroke": true, "weight": 3}
+            ).addTo(map_47ad84b0cfd92d2718f03a9879496bda);
+        
+    
+        var popup_563fa2a39f476325428886cd40c817ce = L.popup({
+  "maxWidth": "100%",
+});
+
+        
+            
+                var html_23740f04b9ff9824a64973274b3fb129 = $(`<div id="html_23740f04b9ff9824a64973274b3fb129" style="width: 100.0%; height: 100.0%;"><b>us 186 psf jardim uchôa</b><br>Vehicle: 1<br>Demand: 11</div>`)[0];
+                popup_563fa2a39f476325428886cd40c817ce.setContent(html_23740f04b9ff9824a64973274b3fb129);
+            
+        
+
+        circle_marker_8cb603ce4463d5afab52163e56ecb487.bindPopup(popup_563fa2a39f476325428886cd40c817ce)
+        ;
+
+        
+    
+    
+            circle_marker_8cb603ce4463d5afab52163e56ecb487.bindTooltip(
+                `<div>
+                     V1: us 186 psf jardim uchôa
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var circle_marker_f618fe101eb576c1e9dcdb6b29c25c4e = L.circleMarker(
+                [-8.09067369316, -34.9279012605],
+                {"bubblingMouseEvents": true, "color": "#e6194b", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "#e6194b", "fillOpacity": 0.85, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 6, "stroke": true, "weight": 3}
+            ).addTo(map_47ad84b0cfd92d2718f03a9879496bda);
+        
+    
+        var popup_731cf1d5486eaa561220c7a4c0723129 = L.popup({
+  "maxWidth": "100%",
+});
+
+        
+            
+                var html_f8a5117f0b10e4ef60b4e93ce6c1bc6b = $(`<div id="html_f8a5117f0b10e4ef60b4e93ce6c1bc6b" style="width: 100.0%; height: 100.0%;"><b>us 238 psf iraque</b><br>Vehicle: 1<br>Demand: 15</div>`)[0];
+                popup_731cf1d5486eaa561220c7a4c0723129.setContent(html_f8a5117f0b10e4ef60b4e93ce6c1bc6b);
+            
+        
+
+        circle_marker_f618fe101eb576c1e9dcdb6b29c25c4e.bindPopup(popup_731cf1d5486eaa561220c7a4c0723129)
+        ;
+
+        
+    
+    
+            circle_marker_f618fe101eb576c1e9dcdb6b29c25c4e.bindTooltip(
+                `<div>
+                     V1: us 238 psf iraque
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var poly_line_f714ae8412c6551e88a6830627b01b71 = L.polyline(
+                [[-8.0598, -34.9225], [-8.08120706352, -34.9403475908], [-8.08983612925, -34.9422091091], [-8.10100432002, -34.9379279244], [-8.09067369316, -34.9279012605], [-8.0598, -34.9225]],
+                {"bubblingMouseEvents": true, "color": "#e6194b", "dashArray": null, "dashOffset": null, "fill": false, "fillColor": "#e6194b", "fillOpacity": 0.2, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "noClip": false, "opacity": 0.8, "smoothFactor": 1.0, "stroke": true, "weight": 3.5}
+            ).addTo(map_47ad84b0cfd92d2718f03a9879496bda);
+        
+    
+            poly_line_f714ae8412c6551e88a6830627b01b71.bindTooltip(
+                `<div>
+                     Vehicle 1 (4 units, load 81/100)
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var circle_marker_f5ddc6a8262a39a9be8abe1f235a2212 = L.circleMarker(
+                [-8.07289705871, -34.9434788213],
+                {"bubblingMouseEvents": true, "color": "#3cb44b", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "#3cb44b", "fillOpacity": 0.85, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 6, "stroke": true, "weight": 3}
+            ).addTo(map_47ad84b0cfd92d2718f03a9879496bda);
+        
+    
+        var popup_ddd860abd65943cb15082b748e6ed792 = L.popup({
+  "maxWidth": "100%",
+});
+
+        
+            
+                var html_96c618ecd4cb4d22c0ad22a0ffa38bdc = $(`<div id="html_96c618ecd4cb4d22c0ad22a0ffa38bdc" style="width: 100.0%; height: 100.0%;"><b>US 158 Pam Ceasa</b><br>Vehicle: 2<br>Demand: 25</div>`)[0];
+                popup_ddd860abd65943cb15082b748e6ed792.setContent(html_96c618ecd4cb4d22c0ad22a0ffa38bdc);
+            
+        
+
+        circle_marker_f5ddc6a8262a39a9be8abe1f235a2212.bindPopup(popup_ddd860abd65943cb15082b748e6ed792)
+        ;
+
+        
+    
+    
+            circle_marker_f5ddc6a8262a39a9be8abe1f235a2212.bindTooltip(
+                `<div>
+                     V2: US 158 Pam Ceasa
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var circle_marker_dcf841141902072e34e6d3ff3e615d10 = L.circleMarker(
+                [-8.07937775047, -34.9703681618],
+                {"bubblingMouseEvents": true, "color": "#3cb44b", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "#3cb44b", "fillOpacity": 0.85, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 6, "stroke": true, "weight": 3}
+            ).addTo(map_47ad84b0cfd92d2718f03a9879496bda);
+        
+    
+        var popup_95766156799066c5e5e1b0d28a0f8516 = L.popup({
+  "maxWidth": "100%",
+});
+
+        
+            
+                var html_72c30629c44fee0ba504ff78184583cd = $(`<div id="html_72c30629c44fee0ba504ff78184583cd" style="width: 100.0%; height: 100.0%;"><b>US 142 CS Bidu Krause</b><br>Vehicle: 2<br>Demand: 25</div>`)[0];
+                popup_95766156799066c5e5e1b0d28a0f8516.setContent(html_72c30629c44fee0ba504ff78184583cd);
+            
+        
+
+        circle_marker_dcf841141902072e34e6d3ff3e615d10.bindPopup(popup_95766156799066c5e5e1b0d28a0f8516)
+        ;
+
+        
+    
+    
+            circle_marker_dcf841141902072e34e6d3ff3e615d10.bindTooltip(
+                `<div>
+                     V2: US 142 CS Bidu Krause
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var circle_marker_74668ff3e4e7596bbed3a502855a571f = L.circleMarker(
+                [-8.05888388976, -34.9319138572],
+                {"bubblingMouseEvents": true, "color": "#3cb44b", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "#3cb44b", "fillOpacity": 0.85, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 6, "stroke": true, "weight": 3}
+            ).addTo(map_47ad84b0cfd92d2718f03a9879496bda);
+        
+    
+        var popup_9d27e547956c20527c158e04754bce9d = L.popup({
+  "maxWidth": "100%",
+});
+
+        
+            
+                var html_4d7f7385cd8ceff3935e4e95af08916b = $(`<div id="html_4d7f7385cd8ceff3935e4e95af08916b" style="width: 100.0%; height: 100.0%;"><b>US 106 CS Prof Joaquim Cavalcante</b><br>Vehicle: 2<br>Demand: 14</div>`)[0];
+                popup_9d27e547956c20527c158e04754bce9d.setContent(html_4d7f7385cd8ceff3935e4e95af08916b);
+            
+        
+
+        circle_marker_74668ff3e4e7596bbed3a502855a571f.bindPopup(popup_9d27e547956c20527c158e04754bce9d)
+        ;
+
+        
+    
+    
+            circle_marker_74668ff3e4e7596bbed3a502855a571f.bindTooltip(
+                `<div>
+                     V2: US 106 CS Prof Joaquim Cavalcante
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var circle_marker_b2275456c3384884534f590ac840db9b = L.circleMarker(
+                [-8.03881197573, -34.9307208253],
+                {"bubblingMouseEvents": true, "color": "#3cb44b", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "#3cb44b", "fillOpacity": 0.85, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 6, "stroke": true, "weight": 3}
+            ).addTo(map_47ad84b0cfd92d2718f03a9879496bda);
+        
+    
+        var popup_37be9c4850386d52bd9d67d1354e078b = L.popup({
+  "maxWidth": "100%",
+});
+
+        
+            
+                var html_b3573dc68151d3a00d9ba57914fbbc9f = $(`<div id="html_b3573dc68151d3a00d9ba57914fbbc9f" style="width: 100.0%; height: 100.0%;"><b>us 225 psf skylab ii</b><br>Vehicle: 2<br>Demand: 27</div>`)[0];
+                popup_37be9c4850386d52bd9d67d1354e078b.setContent(html_b3573dc68151d3a00d9ba57914fbbc9f);
+            
+        
+
+        circle_marker_b2275456c3384884534f590ac840db9b.bindPopup(popup_37be9c4850386d52bd9d67d1354e078b)
+        ;
+
+        
+    
+    
+            circle_marker_b2275456c3384884534f590ac840db9b.bindTooltip(
+                `<div>
+                     V2: us 225 psf skylab ii
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var poly_line_6a585e78588e4e61d1bf08d3cf15c8ee = L.polyline(
+                [[-8.0598, -34.9225], [-8.07289705871, -34.9434788213], [-8.07937775047, -34.9703681618], [-8.05888388976, -34.9319138572], [-8.03881197573, -34.9307208253], [-8.0598, -34.9225]],
+                {"bubblingMouseEvents": true, "color": "#3cb44b", "dashArray": null, "dashOffset": null, "fill": false, "fillColor": "#3cb44b", "fillOpacity": 0.2, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "noClip": false, "opacity": 0.8, "smoothFactor": 1.0, "stroke": true, "weight": 3.5}
+            ).addTo(map_47ad84b0cfd92d2718f03a9879496bda);
+        
+    
+            poly_line_6a585e78588e4e61d1bf08d3cf15c8ee.bindTooltip(
+                `<div>
+                     Vehicle 2 (4 units, load 91/100)
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var circle_marker_fedb442155e92508abe1828277a349d5 = L.circleMarker(
+                [-8.13157772571, -34.9370099337],
+                {"bubblingMouseEvents": true, "color": "#4363d8", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "#4363d8", "fillOpacity": 0.85, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 6, "stroke": true, "weight": 3}
+            ).addTo(map_47ad84b0cfd92d2718f03a9879496bda);
+        
+    
+        var popup_aec7c93ce70830d8ad4c3ec2f4da4a18 = L.popup({
+  "maxWidth": "100%",
+});
+
+        
+            
+                var html_9ec872a4f2c6c5b8a1530f210f0bf2fc = $(`<div id="html_9ec872a4f2c6c5b8a1530f210f0bf2fc" style="width: 100.0%; height: 100.0%;"><b>US 113 CS Dr Aristarco Azevedo</b><br>Vehicle: 3<br>Demand: 12</div>`)[0];
+                popup_aec7c93ce70830d8ad4c3ec2f4da4a18.setContent(html_9ec872a4f2c6c5b8a1530f210f0bf2fc);
+            
+        
+
+        circle_marker_fedb442155e92508abe1828277a349d5.bindPopup(popup_aec7c93ce70830d8ad4c3ec2f4da4a18)
+        ;
+
+        
+    
+    
+            circle_marker_fedb442155e92508abe1828277a349d5.bindTooltip(
+                `<div>
+                     V3: US 113 CS Dr Aristarco Azevedo
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var circle_marker_bbf257bfd1c7db8a845d311bb59d1f53 = L.circleMarker(
+                [-8.14813320109, -34.9135759982],
+                {"bubblingMouseEvents": true, "color": "#4363d8", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "#4363d8", "fillOpacity": 0.85, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 6, "stroke": true, "weight": 3}
+            ).addTo(map_47ad84b0cfd92d2718f03a9879496bda);
+        
+    
+        var popup_c2a15c34d6971dc3eaed67be85f8c495 = L.popup({
+  "maxWidth": "100%",
+});
+
+        
+            
+                var html_dc8d57a3433eef80ff281287870040fc = $(`<div id="html_dc8d57a3433eef80ff281287870040fc" style="width: 100.0%; height: 100.0%;"><b>us 137 psf borborema dr djair brindeiro</b><br>Vehicle: 3<br>Demand: 27</div>`)[0];
+                popup_c2a15c34d6971dc3eaed67be85f8c495.setContent(html_dc8d57a3433eef80ff281287870040fc);
+            
+        
+
+        circle_marker_bbf257bfd1c7db8a845d311bb59d1f53.bindPopup(popup_c2a15c34d6971dc3eaed67be85f8c495)
+        ;
+
+        
+    
+    
+            circle_marker_bbf257bfd1c7db8a845d311bb59d1f53.bindTooltip(
+                `<div>
+                     V3: us 137 psf borborema dr djair brindeiro
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var circle_marker_78234408c250abdb8113614b0243c1e7 = L.circleMarker(
+                [-8.14823767649, -34.9137397316],
+                {"bubblingMouseEvents": true, "color": "#4363d8", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "#4363d8", "fillOpacity": 0.85, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 6, "stroke": true, "weight": 3}
+            ).addTo(map_47ad84b0cfd92d2718f03a9879496bda);
+        
+    
+        var popup_78b0e7dccbc6949936cd2a18ea024e67 = L.popup({
+  "maxWidth": "100%",
+});
+
+        
+            
+                var html_59dcc4097f83402dd1b2be8556b75dda = $(`<div id="html_59dcc4097f83402dd1b2be8556b75dda" style="width: 100.0%; height: 100.0%;"><b>US 137 CS Prof Djair Brindeiro</b><br>Vehicle: 3<br>Demand: 20</div>`)[0];
+                popup_78b0e7dccbc6949936cd2a18ea024e67.setContent(html_59dcc4097f83402dd1b2be8556b75dda);
+            
+        
+
+        circle_marker_78234408c250abdb8113614b0243c1e7.bindPopup(popup_78b0e7dccbc6949936cd2a18ea024e67)
+        ;
+
+        
+    
+    
+            circle_marker_78234408c250abdb8113614b0243c1e7.bindTooltip(
+                `<div>
+                     V3: US 137 CS Prof Djair Brindeiro
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var circle_marker_7f4a0611a0d36d96677f99ae7b25ed31 = L.circleMarker(
+                [-8.13342108939, -34.904659968],
+                {"bubblingMouseEvents": true, "color": "#4363d8", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "#4363d8", "fillOpacity": 0.85, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 6, "stroke": true, "weight": 3}
+            ).addTo(map_47ad84b0cfd92d2718f03a9879496bda);
+        
+    
+        var popup_465583aa16091044dd13a84d9d563967 = L.popup({
+  "maxWidth": "100%",
+});
+
+        
+            
+                var html_8cfb6ec77b3ee29939d8fa557c07c2bd = $(`<div id="html_8cfb6ec77b3ee29939d8fa557c07c2bd" style="width: 100.0%; height: 100.0%;"><b>US 148 CS Dom Miguel de Lima Valverde</b><br>Vehicle: 3<br>Demand: 17</div>`)[0];
+                popup_465583aa16091044dd13a84d9d563967.setContent(html_8cfb6ec77b3ee29939d8fa557c07c2bd);
+            
+        
+
+        circle_marker_7f4a0611a0d36d96677f99ae7b25ed31.bindPopup(popup_465583aa16091044dd13a84d9d563967)
+        ;
+
+        
+    
+    
+            circle_marker_7f4a0611a0d36d96677f99ae7b25ed31.bindTooltip(
+                `<div>
+                     V3: US 148 CS Dom Miguel de Lima Valverde
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var circle_marker_b7beddd016305908d5f268a7a3aefb7e = L.circleMarker(
+                [-8.11682838797, -34.9109908443],
+                {"bubblingMouseEvents": true, "color": "#4363d8", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "#4363d8", "fillOpacity": 0.85, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 6, "stroke": true, "weight": 3}
+            ).addTo(map_47ad84b0cfd92d2718f03a9879496bda);
+        
+    
+        var popup_cfe212950d45399a88f19f027100cece = L.popup({
+  "maxWidth": "100%",
+});
+
+        
+            
+                var html_b514e0e1caec092c07502634fca3540b = $(`<div id="html_b514e0e1caec092c07502634fca3540b" style="width: 100.0%; height: 100.0%;"><b>US 126 CS Ver Romildo Gomes</b><br>Vehicle: 3<br>Demand: 19</div>`)[0];
+                popup_cfe212950d45399a88f19f027100cece.setContent(html_b514e0e1caec092c07502634fca3540b);
+            
+        
+
+        circle_marker_b7beddd016305908d5f268a7a3aefb7e.bindPopup(popup_cfe212950d45399a88f19f027100cece)
+        ;
+
+        
+    
+    
+            circle_marker_b7beddd016305908d5f268a7a3aefb7e.bindTooltip(
+                `<div>
+                     V3: US 126 CS Ver Romildo Gomes
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var poly_line_684e8de086f5a35ae7ce30e228c53517 = L.polyline(
+                [[-8.0598, -34.9225], [-8.13157772571, -34.9370099337], [-8.14813320109, -34.9135759982], [-8.14823767649, -34.9137397316], [-8.13342108939, -34.904659968], [-8.11682838797, -34.9109908443], [-8.0598, -34.9225]],
+                {"bubblingMouseEvents": true, "color": "#4363d8", "dashArray": null, "dashOffset": null, "fill": false, "fillColor": "#4363d8", "fillOpacity": 0.2, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "noClip": false, "opacity": 0.8, "smoothFactor": 1.0, "stroke": true, "weight": 3.5}
+            ).addTo(map_47ad84b0cfd92d2718f03a9879496bda);
+        
+    
+            poly_line_684e8de086f5a35ae7ce30e228c53517.bindTooltip(
+                `<div>
+                     Vehicle 3 (5 units, load 95/100)
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var circle_marker_33cbecae6f8deb0a80ac8d96f5e9dbb2 = L.circleMarker(
+                [-8.10304864422, -34.9326387231],
+                {"bubblingMouseEvents": true, "color": "#f58231", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "#f58231", "fillOpacity": 0.85, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 6, "stroke": true, "weight": 3}
+            ).addTo(map_47ad84b0cfd92d2718f03a9879496bda);
+        
+    
+        var popup_a1c6f0cd3cbf1b0198924782ad51c3b2 = L.popup({
+  "maxWidth": "100%",
+});
+
+        
+            
+                var html_5d3602f2bd16ec8ccf8da7eedf264a7e = $(`<div id="html_5d3602f2bd16ec8ccf8da7eedf264a7e" style="width: 100.0%; height: 100.0%;"><b>us 177 psf chico mendes</b><br>Vehicle: 4<br>Demand: 18</div>`)[0];
+                popup_a1c6f0cd3cbf1b0198924782ad51c3b2.setContent(html_5d3602f2bd16ec8ccf8da7eedf264a7e);
+            
+        
+
+        circle_marker_33cbecae6f8deb0a80ac8d96f5e9dbb2.bindPopup(popup_a1c6f0cd3cbf1b0198924782ad51c3b2)
+        ;
+
+        
+    
+    
+            circle_marker_33cbecae6f8deb0a80ac8d96f5e9dbb2.bindTooltip(
+                `<div>
+                     V4: us 177 psf chico mendes
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var circle_marker_11b92d3a18fe3f20fd5669559efeedb5 = L.circleMarker(
+                [-8.11972179209, -34.9481235001],
+                {"bubblingMouseEvents": true, "color": "#f58231", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "#f58231", "fillOpacity": 0.85, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 6, "stroke": true, "weight": 3}
+            ).addTo(map_47ad84b0cfd92d2718f03a9879496bda);
+        
+    
+        var popup_7d3655c088e1671973766eedf28a88b8 = L.popup({
+  "maxWidth": "100%",
+});
+
+        
+            
+                var html_bde8564d2874377dbacc81aff2356f9e = $(`<div id="html_bde8564d2874377dbacc81aff2356f9e" style="width: 100.0%; height: 100.0%;"><b>US 104 CS Sebastião Ivo Rabelo</b><br>Vehicle: 4<br>Demand: 20</div>`)[0];
+                popup_7d3655c088e1671973766eedf28a88b8.setContent(html_bde8564d2874377dbacc81aff2356f9e);
+            
+        
+
+        circle_marker_11b92d3a18fe3f20fd5669559efeedb5.bindPopup(popup_7d3655c088e1671973766eedf28a88b8)
+        ;
+
+        
+    
+    
+            circle_marker_11b92d3a18fe3f20fd5669559efeedb5.bindTooltip(
+                `<div>
+                     V4: US 104 CS Sebastião Ivo Rabelo
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var circle_marker_64a9b610d2f3ddd480e6e979fb33926c = L.circleMarker(
+                [-8.12535688953, -34.9582189795],
+                {"bubblingMouseEvents": true, "color": "#f58231", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "#f58231", "fillOpacity": 0.85, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 6, "stroke": true, "weight": 3}
+            ).addTo(map_47ad84b0cfd92d2718f03a9879496bda);
+        
+    
+        var popup_f3304f9306182ea9daac9ebdd718a2bb = L.popup({
+  "maxWidth": "100%",
+});
+
+        
+            
+                var html_59fba09fa7d54e3fdabb620e9a822ee9 = $(`<div id="html_59fba09fa7d54e3fdabb620e9a822ee9" style="width: 100.0%; height: 100.0%;"><b>us 172 psf três carneiros</b><br>Vehicle: 4<br>Demand: 21</div>`)[0];
+                popup_f3304f9306182ea9daac9ebdd718a2bb.setContent(html_59fba09fa7d54e3fdabb620e9a822ee9);
+            
+        
+
+        circle_marker_64a9b610d2f3ddd480e6e979fb33926c.bindPopup(popup_f3304f9306182ea9daac9ebdd718a2bb)
+        ;
+
+        
+    
+    
+            circle_marker_64a9b610d2f3ddd480e6e979fb33926c.bindTooltip(
+                `<div>
+                     V4: us 172 psf três carneiros
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var circle_marker_5f885ca613eb4de6af0a04ce6536e29c = L.circleMarker(
+                [-8.10369000417, -34.9216864536],
+                {"bubblingMouseEvents": true, "color": "#f58231", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "#f58231", "fillOpacity": 0.85, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 6, "stroke": true, "weight": 3}
+            ).addTo(map_47ad84b0cfd92d2718f03a9879496bda);
+        
+    
+        var popup_1bab56d1b5ab8761fee54e00589b2700 = L.popup({
+  "maxWidth": "100%",
+});
+
+        
+            
+                var html_8f86f9a7ef789b442cf213df2c8978cd = $(`<div id="html_8f86f9a7ef789b442cf213df2c8978cd" style="width: 100.0%; height: 100.0%;"><b>us 173 psf dancing days</b><br>Vehicle: 4<br>Demand: 23</div>`)[0];
+                popup_1bab56d1b5ab8761fee54e00589b2700.setContent(html_8f86f9a7ef789b442cf213df2c8978cd);
+            
+        
+
+        circle_marker_5f885ca613eb4de6af0a04ce6536e29c.bindPopup(popup_1bab56d1b5ab8761fee54e00589b2700)
+        ;
+
+        
+    
+    
+            circle_marker_5f885ca613eb4de6af0a04ce6536e29c.bindTooltip(
+                `<div>
+                     V4: us 173 psf dancing days
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var circle_marker_37d741d39631b1816746eccbf171c83c = L.circleMarker(
+                [-8.06490661952, -34.9053121757],
+                {"bubblingMouseEvents": true, "color": "#f58231", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "#f58231", "fillOpacity": 0.85, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 6, "stroke": true, "weight": 3}
+            ).addTo(map_47ad84b0cfd92d2718f03a9879496bda);
+        
+    
+        var popup_25367c8b502013545b647b8b9d737396 = L.popup({
+  "maxWidth": "100%",
+});
+
+        
+            
+                var html_78f342f4cdc58f1960c1c37e9c3655aa = $(`<div id="html_78f342f4cdc58f1960c1c37e9c3655aa" style="width: 100.0%; height: 100.0%;"><b>us 224 psf caranguejo</b><br>Vehicle: 4<br>Demand: 14</div>`)[0];
+                popup_25367c8b502013545b647b8b9d737396.setContent(html_78f342f4cdc58f1960c1c37e9c3655aa);
+            
+        
+
+        circle_marker_37d741d39631b1816746eccbf171c83c.bindPopup(popup_25367c8b502013545b647b8b9d737396)
+        ;
+
+        
+    
+    
+            circle_marker_37d741d39631b1816746eccbf171c83c.bindTooltip(
+                `<div>
+                     V4: us 224 psf caranguejo
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var poly_line_daf6a865f9eaf8f50b8076f22d1b88cf = L.polyline(
+                [[-8.0598, -34.9225], [-8.10304864422, -34.9326387231], [-8.11972179209, -34.9481235001], [-8.12535688953, -34.9582189795], [-8.10369000417, -34.9216864536], [-8.06490661952, -34.9053121757], [-8.0598, -34.9225]],
+                {"bubblingMouseEvents": true, "color": "#f58231", "dashArray": null, "dashOffset": null, "fill": false, "fillColor": "#f58231", "fillOpacity": 0.2, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "noClip": false, "opacity": 0.8, "smoothFactor": 1.0, "stroke": true, "weight": 3.5}
+            ).addTo(map_47ad84b0cfd92d2718f03a9879496bda);
+        
+    
+            poly_line_daf6a865f9eaf8f50b8076f22d1b88cf.bindTooltip(
+                `<div>
+                     Vehicle 4 (5 units, load 96/100)
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var circle_marker_4202ef666eb0cfadd5aeb3413bc25172 = L.circleMarker(
+                [-8.071519065, -34.9000069344],
+                {"bubblingMouseEvents": true, "color": "#911eb4", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "#911eb4", "fillOpacity": 0.85, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 6, "stroke": true, "weight": 3}
+            ).addTo(map_47ad84b0cfd92d2718f03a9879496bda);
+        
+    
+        var popup_26eccbb6c0786d5e4a28d3fe588ec755 = L.popup({
+  "maxWidth": "100%",
+});
+
+        
+            
+                var html_d25227e147b1c169660846e7b1330bbf = $(`<div id="html_d25227e147b1c169660846e7b1330bbf" style="width: 100.0%; height: 100.0%;"><b>us 218 psf coque</b><br>Vehicle: 5<br>Demand: 13</div>`)[0];
+                popup_26eccbb6c0786d5e4a28d3fe588ec755.setContent(html_d25227e147b1c169660846e7b1330bbf);
+            
+        
+
+        circle_marker_4202ef666eb0cfadd5aeb3413bc25172.bindPopup(popup_26eccbb6c0786d5e4a28d3fe588ec755)
+        ;
+
+        
+    
+    
+            circle_marker_4202ef666eb0cfadd5aeb3413bc25172.bindTooltip(
+                `<div>
+                     V5: us 218 psf coque
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var circle_marker_15728f6283bd6aa2e713c61910d65de7 = L.circleMarker(
+                [-8.08741278665, -34.8897945879],
+                {"bubblingMouseEvents": true, "color": "#911eb4", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "#911eb4", "fillOpacity": 0.85, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 6, "stroke": true, "weight": 3}
+            ).addTo(map_47ad84b0cfd92d2718f03a9879496bda);
+        
+    
+        var popup_55e1ddc58a0a88a0acd97f127f8824cb = L.popup({
+  "maxWidth": "100%",
+});
+
+        
+            
+                var html_0bcbc05d7334a6a7affd189af09c2e15 = $(`<div id="html_0bcbc05d7334a6a7affd189af09c2e15" style="width: 100.0%; height: 100.0%;"><b>US 119 CS Prof José Carneiro Leão</b><br>Vehicle: 5<br>Demand: 27</div>`)[0];
+                popup_55e1ddc58a0a88a0acd97f127f8824cb.setContent(html_0bcbc05d7334a6a7affd189af09c2e15);
+            
+        
+
+        circle_marker_15728f6283bd6aa2e713c61910d65de7.bindPopup(popup_55e1ddc58a0a88a0acd97f127f8824cb)
+        ;
+
+        
+    
+    
+            circle_marker_15728f6283bd6aa2e713c61910d65de7.bindTooltip(
+                `<div>
+                     V5: US 119 CS Prof José Carneiro Leão
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var circle_marker_9d0f46676a086f4363fadc48fc93b372 = L.circleMarker(
+                [-8.06824062912, -34.8904550466],
+                {"bubblingMouseEvents": true, "color": "#911eb4", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "#911eb4", "fillOpacity": 0.85, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 6, "stroke": true, "weight": 3}
+            ).addTo(map_47ad84b0cfd92d2718f03a9879496bda);
+        
+    
+        var popup_2f1d1307cf8b37e2593e468b641fd986 = L.popup({
+  "maxWidth": "100%",
+});
+
+        
+            
+                var html_b1c2fb26752f45d14c9f05ad4d60c138 = $(`<div id="html_b1c2fb26752f45d14c9f05ad4d60c138" style="width: 100.0%; height: 100.0%;"><b>us 240 psf coelhos i</b><br>Vehicle: 5<br>Demand: 28</div>`)[0];
+                popup_2f1d1307cf8b37e2593e468b641fd986.setContent(html_b1c2fb26752f45d14c9f05ad4d60c138);
+            
+        
+
+        circle_marker_9d0f46676a086f4363fadc48fc93b372.bindPopup(popup_2f1d1307cf8b37e2593e468b641fd986)
+        ;
+
+        
+    
+    
+            circle_marker_9d0f46676a086f4363fadc48fc93b372.bindTooltip(
+                `<div>
+                     V5: us 240 psf coelhos i
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var circle_marker_b619f752c86c24f6d51f32bc552381db = L.circleMarker(
+                [-8.03967592105, -34.8769693087],
+                {"bubblingMouseEvents": true, "color": "#911eb4", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "#911eb4", "fillOpacity": 0.85, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 6, "stroke": true, "weight": 3}
+            ).addTo(map_47ad84b0cfd92d2718f03a9879496bda);
+        
+    
+        var popup_c7ec335bebc97529c38122efae190dd6 = L.popup({
+  "maxWidth": "100%",
+});
+
+        
+            
+                var html_96e8e0e150d5ef97bc3fcda43900a44f = $(`<div id="html_96e8e0e150d5ef97bc3fcda43900a44f" style="width: 100.0%; height: 100.0%;"><b>us 232 psf ilha santa terezinha</b><br>Vehicle: 5<br>Demand: 21</div>`)[0];
+                popup_c7ec335bebc97529c38122efae190dd6.setContent(html_96e8e0e150d5ef97bc3fcda43900a44f);
+            
+        
+
+        circle_marker_b619f752c86c24f6d51f32bc552381db.bindPopup(popup_c7ec335bebc97529c38122efae190dd6)
+        ;
+
+        
+    
+    
+            circle_marker_b619f752c86c24f6d51f32bc552381db.bindTooltip(
+                `<div>
+                     V5: us 232 psf ilha santa terezinha
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var poly_line_5b564394735c3fe9738cfce81edcb18c = L.polyline(
+                [[-8.0598, -34.9225], [-8.071519065, -34.9000069344], [-8.08741278665, -34.8897945879], [-8.06824062912, -34.8904550466], [-8.03967592105, -34.8769693087], [-8.0598, -34.9225]],
+                {"bubblingMouseEvents": true, "color": "#911eb4", "dashArray": null, "dashOffset": null, "fill": false, "fillColor": "#911eb4", "fillOpacity": 0.2, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "noClip": false, "opacity": 0.8, "smoothFactor": 1.0, "stroke": true, "weight": 3.5}
+            ).addTo(map_47ad84b0cfd92d2718f03a9879496bda);
+        
+    
+            poly_line_5b564394735c3fe9738cfce81edcb18c.bindTooltip(
+                `<div>
+                     Vehicle 5 (4 units, load 89/100)
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var circle_marker_236ec5108bf44e1d6826077fc8a33f1d = L.circleMarker(
+                [-8.02434824565, -34.9284859357],
+                {"bubblingMouseEvents": true, "color": "#46f0f0", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "#46f0f0", "fillOpacity": 0.85, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 6, "stroke": true, "weight": 3}
+            ).addTo(map_47ad84b0cfd92d2718f03a9879496bda);
+        
+    
+        var popup_5930abfec3b14e253c9eedc54bd3dc81 = L.popup({
+  "maxWidth": "100%",
+});
+
+        
+            
+                var html_a8cd2835dcf25a2f2db980aed3489459 = $(`<div id="html_a8cd2835dcf25a2f2db980aed3489459" style="width: 100.0%; height: 100.0%;"><b>US 171 CS Joaquim Costa Carvalho</b><br>Vehicle: 6<br>Demand: 24</div>`)[0];
+                popup_5930abfec3b14e253c9eedc54bd3dc81.setContent(html_a8cd2835dcf25a2f2db980aed3489459);
+            
+        
+
+        circle_marker_236ec5108bf44e1d6826077fc8a33f1d.bindPopup(popup_5930abfec3b14e253c9eedc54bd3dc81)
+        ;
+
+        
+    
+    
+            circle_marker_236ec5108bf44e1d6826077fc8a33f1d.bindTooltip(
+                `<div>
+                     V6: US 171 CS Joaquim Costa Carvalho
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var circle_marker_f9b6ba5e96f33edaed14f7b4bd639e60 = L.circleMarker(
+                [-8.01897516671, -34.9263286638],
+                {"bubblingMouseEvents": true, "color": "#46f0f0", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "#46f0f0", "fillOpacity": 0.85, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 6, "stroke": true, "weight": 3}
+            ).addTo(map_47ad84b0cfd92d2718f03a9879496bda);
+        
+    
+        var popup_63230bb3ccb99dc19a20179b0967a643 = L.popup({
+  "maxWidth": "100%",
+});
+
+        
+            
+                var html_64b0e051511a5e284c7805731c6e5c14 = $(`<div id="html_64b0e051511a5e284c7805731c6e5c14" style="width: 100.0%; height: 100.0%;"><b>US 120 CS Mário Monteiro Melo</b><br>Vehicle: 6<br>Demand: 19</div>`)[0];
+                popup_63230bb3ccb99dc19a20179b0967a643.setContent(html_64b0e051511a5e284c7805731c6e5c14);
+            
+        
+
+        circle_marker_f9b6ba5e96f33edaed14f7b4bd639e60.bindPopup(popup_63230bb3ccb99dc19a20179b0967a643)
+        ;
+
+        
+    
+    
+            circle_marker_f9b6ba5e96f33edaed14f7b4bd639e60.bindTooltip(
+                `<div>
+                     V6: US 120 CS Mário Monteiro Melo
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var circle_marker_614c46b425d0a704413c94c92488ba8e = L.circleMarker(
+                [-8.00130829104, -34.9247265631],
+                {"bubblingMouseEvents": true, "color": "#46f0f0", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "#46f0f0", "fillOpacity": 0.85, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 6, "stroke": true, "weight": 3}
+            ).addTo(map_47ad84b0cfd92d2718f03a9879496bda);
+        
+    
+        var popup_98bb5ebc031b170528e7f60e38d0cbe1 = L.popup({
+  "maxWidth": "100%",
+});
+
+        
+            
+                var html_e41ce13e902cdb142948c1f9c24099af = $(`<div id="html_e41ce13e902cdb142948c1f9c24099af" style="width: 100.0%; height: 100.0%;"><b>US 121 CS Prof Bruno Maia</b><br>Vehicle: 6<br>Demand: 28</div>`)[0];
+                popup_98bb5ebc031b170528e7f60e38d0cbe1.setContent(html_e41ce13e902cdb142948c1f9c24099af);
+            
+        
+
+        circle_marker_614c46b425d0a704413c94c92488ba8e.bindPopup(popup_98bb5ebc031b170528e7f60e38d0cbe1)
+        ;
+
+        
+    
+    
+            circle_marker_614c46b425d0a704413c94c92488ba8e.bindTooltip(
+                `<div>
+                     V6: US 121 CS Prof Bruno Maia
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var circle_marker_8cc40c8950202d1cd49fe193b5031594 = L.circleMarker(
+                [-8.02755901116, -34.9186940689],
+                {"bubblingMouseEvents": true, "color": "#46f0f0", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "#46f0f0", "fillOpacity": 0.85, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 6, "stroke": true, "weight": 3}
+            ).addTo(map_47ad84b0cfd92d2718f03a9879496bda);
+        
+    
+        var popup_23172c5c9545b9355307006728a51c47 = L.popup({
+  "maxWidth": "100%",
+});
+
+        
+            
+                var html_c46c3d8f97fab198d537b4f286ba310c = $(`<div id="html_c46c3d8f97fab198d537b4f286ba310c" style="width: 100.0%; height: 100.0%;"><b>US 109 CS Francisco Pignatari</b><br>Vehicle: 6<br>Demand: 19</div>`)[0];
+                popup_23172c5c9545b9355307006728a51c47.setContent(html_c46c3d8f97fab198d537b4f286ba310c);
+            
+        
+
+        circle_marker_8cc40c8950202d1cd49fe193b5031594.bindPopup(popup_23172c5c9545b9355307006728a51c47)
+        ;
+
+        
+    
+    
+            circle_marker_8cc40c8950202d1cd49fe193b5031594.bindTooltip(
+                `<div>
+                     V6: US 109 CS Francisco Pignatari
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var poly_line_d0008e690ba6961a399a08707c3199c4 = L.polyline(
+                [[-8.0598, -34.9225], [-8.02434824565, -34.9284859357], [-8.01897516671, -34.9263286638], [-8.00130829104, -34.9247265631], [-8.02755901116, -34.9186940689], [-8.0598, -34.9225]],
+                {"bubblingMouseEvents": true, "color": "#46f0f0", "dashArray": null, "dashOffset": null, "fill": false, "fillColor": "#46f0f0", "fillOpacity": 0.2, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "noClip": false, "opacity": 0.8, "smoothFactor": 1.0, "stroke": true, "weight": 3.5}
+            ).addTo(map_47ad84b0cfd92d2718f03a9879496bda);
+        
+    
+            poly_line_d0008e690ba6961a399a08707c3199c4.bindTooltip(
+                `<div>
+                     Vehicle 6 (4 units, load 90/100)
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var circle_marker_9988eba2ee9e939193251a33009d6c14 = L.circleMarker(
+                [-8.02113990094, -34.9044131838],
+                {"bubblingMouseEvents": true, "color": "#f032e6", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "#f032e6", "fillOpacity": 0.85, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 6, "stroke": true, "weight": 3}
+            ).addTo(map_47ad84b0cfd92d2718f03a9879496bda);
+        
+    
+        var popup_3d3ef1f214ddeef8de52956c0920c23c = L.popup({
+  "maxWidth": "100%",
+});
+
+        
+            
+                var html_ce18b73c14b2f0471d11f095c0bb0a38 = $(`<div id="html_ce18b73c14b2f0471d11f095c0bb0a38" style="width: 100.0%; height: 100.0%;"><b>us 138 psf dr luiz wilson</b><br>Vehicle: 7<br>Demand: 29</div>`)[0];
+                popup_3d3ef1f214ddeef8de52956c0920c23c.setContent(html_ce18b73c14b2f0471d11f095c0bb0a38);
+            
+        
+
+        circle_marker_9988eba2ee9e939193251a33009d6c14.bindPopup(popup_3d3ef1f214ddeef8de52956c0920c23c)
+        ;
+
+        
+    
+    
+            circle_marker_9988eba2ee9e939193251a33009d6c14.bindTooltip(
+                `<div>
+                     V7: us 138 psf dr luiz wilson
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var circle_marker_2d8a4510ad6d6503bf6d4cd67454ad9d = L.circleMarker(
+                [-8.00393487891, -34.8966966079],
+                {"bubblingMouseEvents": true, "color": "#f032e6", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "#f032e6", "fillOpacity": 0.85, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 6, "stroke": true, "weight": 3}
+            ).addTo(map_47ad84b0cfd92d2718f03a9879496bda);
+        
+    
+        var popup_4d829dbb30fb71795046fc68b5117d6d = L.popup({
+  "maxWidth": "100%",
+});
+
+        
+            
+                var html_77fe29f69cfadc6b3c665a9d5919bd40 = $(`<div id="html_77fe29f69cfadc6b3c665a9d5919bd40" style="width: 100.0%; height: 100.0%;"><b>US 155 CS Prof Monteiro de Morais</b><br>Vehicle: 7<br>Demand: 26</div>`)[0];
+                popup_4d829dbb30fb71795046fc68b5117d6d.setContent(html_77fe29f69cfadc6b3c665a9d5919bd40);
+            
+        
+
+        circle_marker_2d8a4510ad6d6503bf6d4cd67454ad9d.bindPopup(popup_4d829dbb30fb71795046fc68b5117d6d)
+        ;
+
+        
+    
+    
+            circle_marker_2d8a4510ad6d6503bf6d4cd67454ad9d.bindTooltip(
+                `<div>
+                     V7: US 155 CS Prof Monteiro de Morais
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var circle_marker_38f7947b2d4acc3400d0e9a04526929f = L.circleMarker(
+                [-8.00409891123, -34.8969181401],
+                {"bubblingMouseEvents": true, "color": "#f032e6", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "#f032e6", "fillOpacity": 0.85, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 6, "stroke": true, "weight": 3}
+            ).addTo(map_47ad84b0cfd92d2718f03a9879496bda);
+        
+    
+        var popup_5456b21b107fe83173c2f2180edb08c2 = L.popup({
+  "maxWidth": "100%",
+});
+
+        
+            
+                var html_2130003d807103752d82ad175c24f6b7 = $(`<div id="html_2130003d807103752d82ad175c24f6b7" style="width: 100.0%; height: 100.0%;"><b>us 155 psf professor monteiro de morais</b><br>Vehicle: 7<br>Demand: 19</div>`)[0];
+                popup_5456b21b107fe83173c2f2180edb08c2.setContent(html_2130003d807103752d82ad175c24f6b7);
+            
+        
+
+        circle_marker_38f7947b2d4acc3400d0e9a04526929f.bindPopup(popup_5456b21b107fe83173c2f2180edb08c2)
+        ;
+
+        
+    
+    
+            circle_marker_38f7947b2d4acc3400d0e9a04526929f.bindTooltip(
+                `<div>
+                     V7: us 155 psf professor monteiro de morais
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var circle_marker_b97b998aea02eedb60de270ce6d1249e = L.circleMarker(
+                [-8.00969165338, -34.8915349122],
+                {"bubblingMouseEvents": true, "color": "#f032e6", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "#f032e6", "fillOpacity": 0.85, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 6, "stroke": true, "weight": 3}
+            ).addTo(map_47ad84b0cfd92d2718f03a9879496bda);
+        
+    
+        var popup_a87e5d2bae8b3a2dcecd1a50a8b428aa = L.popup({
+  "maxWidth": "100%",
+});
+
+        
+            
+                var html_c843ea548b7cea03ca123877c83261ce = $(`<div id="html_c843ea548b7cea03ca123877c83261ce" style="width: 100.0%; height: 100.0%;"><b>us 179 psf alto do céu</b><br>Vehicle: 7<br>Demand: 11</div>`)[0];
+                popup_a87e5d2bae8b3a2dcecd1a50a8b428aa.setContent(html_c843ea548b7cea03ca123877c83261ce);
+            
+        
+
+        circle_marker_b97b998aea02eedb60de270ce6d1249e.bindPopup(popup_a87e5d2bae8b3a2dcecd1a50a8b428aa)
+        ;
+
+        
+    
+    
+            circle_marker_b97b998aea02eedb60de270ce6d1249e.bindTooltip(
+                `<div>
+                     V7: us 179 psf alto do céu
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var circle_marker_62d8c37f7eebb94c0d51fd5c3b61ff57 = L.circleMarker(
+                [-8.05433824479, -34.8721674263],
+                {"bubblingMouseEvents": true, "color": "#f032e6", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "#f032e6", "fillOpacity": 0.85, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 6, "stroke": true, "weight": 3}
+            ).addTo(map_47ad84b0cfd92d2718f03a9879496bda);
+        
+    
+        var popup_e1a879bdff6a865c2645e82fd7f5caf9 = L.popup({
+  "maxWidth": "100%",
+});
+
+        
+            
+                var html_db003bd606ffe58d7b8cd59079f1e1f2 = $(`<div id="html_db003bd606ffe58d7b8cd59079f1e1f2" style="width: 100.0%; height: 100.0%;"><b>US 123 CS Prof César Montezuma</b><br>Vehicle: 7<br>Demand: 11</div>`)[0];
+                popup_e1a879bdff6a865c2645e82fd7f5caf9.setContent(html_db003bd606ffe58d7b8cd59079f1e1f2);
+            
+        
+
+        circle_marker_62d8c37f7eebb94c0d51fd5c3b61ff57.bindPopup(popup_e1a879bdff6a865c2645e82fd7f5caf9)
+        ;
+
+        
+    
+    
+            circle_marker_62d8c37f7eebb94c0d51fd5c3b61ff57.bindTooltip(
+                `<div>
+                     V7: US 123 CS Prof César Montezuma
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var poly_line_54223f5d0e80d1200c3d600a70ccf3b6 = L.polyline(
+                [[-8.0598, -34.9225], [-8.02113990094, -34.9044131838], [-8.00393487891, -34.8966966079], [-8.00409891123, -34.8969181401], [-8.00969165338, -34.8915349122], [-8.05433824479, -34.8721674263], [-8.0598, -34.9225]],
+                {"bubblingMouseEvents": true, "color": "#f032e6", "dashArray": null, "dashOffset": null, "fill": false, "fillColor": "#f032e6", "fillOpacity": 0.2, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "noClip": false, "opacity": 0.8, "smoothFactor": 1.0, "stroke": true, "weight": 3.5}
+            ).addTo(map_47ad84b0cfd92d2718f03a9879496bda);
+        
+    
+            poly_line_54223f5d0e80d1200c3d600a70ccf3b6.bindTooltip(
+                `<div>
+                     Vehicle 7 (5 units, load 96/100)
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var circle_marker_656859ac4f0ba34610cf5eacbff48266 = L.circleMarker(
+                [-8.03069297999, -34.9557636317],
+                {"bubblingMouseEvents": true, "color": "#bcf60c", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "#bcf60c", "fillOpacity": 0.85, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 6, "stroke": true, "weight": 3}
+            ).addTo(map_47ad84b0cfd92d2718f03a9879496bda);
+        
+    
+        var popup_92d84f75852e81743ba66f3a5559fa21 = L.popup({
+  "maxWidth": "100%",
+});
+
+        
+            
+                var html_bde68f9c9b170682478cddd387aa07b2 = $(`<div id="html_bde68f9c9b170682478cddd387aa07b2" style="width: 100.0%; height: 100.0%;"><b>US 149 CS Olinto Oliveira</b><br>Vehicle: 8<br>Demand: 21</div>`)[0];
+                popup_92d84f75852e81743ba66f3a5559fa21.setContent(html_bde68f9c9b170682478cddd387aa07b2);
+            
+        
+
+        circle_marker_656859ac4f0ba34610cf5eacbff48266.bindPopup(popup_92d84f75852e81743ba66f3a5559fa21)
+        ;
+
+        
+    
+    
+            circle_marker_656859ac4f0ba34610cf5eacbff48266.bindTooltip(
+                `<div>
+                     V8: US 149 CS Olinto Oliveira
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var circle_marker_de783fd6b0882032a1aaaf249229c9c7 = L.circleMarker(
+                [-8.00132259812, -34.9354796789],
+                {"bubblingMouseEvents": true, "color": "#bcf60c", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "#bcf60c", "fillOpacity": 0.85, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 6, "stroke": true, "weight": 3}
+            ).addTo(map_47ad84b0cfd92d2718f03a9879496bda);
+        
+    
+        var popup_8803debe44d14ec39b810914571a4e50 = L.popup({
+  "maxWidth": "100%",
+});
+
+        
+            
+                var html_f58c7ab80e7fddf3b177330b1ef9ef38 = $(`<div id="html_f58c7ab80e7fddf3b177330b1ef9ef38" style="width: 100.0%; height: 100.0%;"><b>us 175 psf dr diogenes cavalcanti</b><br>Vehicle: 8<br>Demand: 19</div>`)[0];
+                popup_8803debe44d14ec39b810914571a4e50.setContent(html_f58c7ab80e7fddf3b177330b1ef9ef38);
+            
+        
+
+        circle_marker_de783fd6b0882032a1aaaf249229c9c7.bindPopup(popup_8803debe44d14ec39b810914571a4e50)
+        ;
+
+        
+    
+    
+            circle_marker_de783fd6b0882032a1aaaf249229c9c7.bindTooltip(
+                `<div>
+                     V8: us 175 psf dr diogenes cavalcanti
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var circle_marker_f9ba6a57a45cadbd9f62de1418b62874 = L.circleMarker(
+                [-8.00138177008, -34.9248708874],
+                {"bubblingMouseEvents": true, "color": "#bcf60c", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "#bcf60c", "fillOpacity": 0.85, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 6, "stroke": true, "weight": 3}
+            ).addTo(map_47ad84b0cfd92d2718f03a9879496bda);
+        
+    
+        var popup_b32f503e87f0d59508a68c1f317300b8 = L.popup({
+  "maxWidth": "100%",
+});
+
+        
+            
+                var html_6dd1f00739c4220016f95d3a86df3012 = $(`<div id="html_6dd1f00739c4220016f95d3a86df3012" style="width: 100.0%; height: 100.0%;"><b>us 121 psf prof bruno maia</b><br>Vehicle: 8<br>Demand: 26</div>`)[0];
+                popup_b32f503e87f0d59508a68c1f317300b8.setContent(html_6dd1f00739c4220016f95d3a86df3012);
+            
+        
+
+        circle_marker_f9ba6a57a45cadbd9f62de1418b62874.bindPopup(popup_b32f503e87f0d59508a68c1f317300b8)
+        ;
+
+        
+    
+    
+            circle_marker_f9ba6a57a45cadbd9f62de1418b62874.bindTooltip(
+                `<div>
+                     V8: us 121 psf prof bruno maia
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var circle_marker_11fc59742921fb69abe8056e6a061b95 = L.circleMarker(
+                [-8.01629782987, -34.9210997659],
+                {"bubblingMouseEvents": true, "color": "#bcf60c", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "#bcf60c", "fillOpacity": 0.85, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 6, "stroke": true, "weight": 3}
+            ).addTo(map_47ad84b0cfd92d2718f03a9879496bda);
+        
+    
+        var popup_31930f6a46c348cee124ddcde4443147 = L.popup({
+  "maxWidth": "100%",
+});
+
+        
+            
+                var html_0b2e18cdcc7ca81598c6c8c550b3816d = $(`<div id="html_0b2e18cdcc7ca81598c6c8c550b3816d" style="width: 100.0%; height: 100.0%;"><b>US 152 CS Iná Rosa Borges</b><br>Vehicle: 8<br>Demand: 11</div>`)[0];
+                popup_31930f6a46c348cee124ddcde4443147.setContent(html_0b2e18cdcc7ca81598c6c8c550b3816d);
+            
+        
+
+        circle_marker_11fc59742921fb69abe8056e6a061b95.bindPopup(popup_31930f6a46c348cee124ddcde4443147)
+        ;
+
+        
+    
+    
+            circle_marker_11fc59742921fb69abe8056e6a061b95.bindTooltip(
+                `<div>
+                     V8: US 152 CS Iná Rosa Borges
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var circle_marker_f99bc23d55ae8bbd5f2cf590b971cb3a = L.circleMarker(
+                [-8.03856413665, -34.9310490866],
+                {"bubblingMouseEvents": true, "color": "#bcf60c", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "#bcf60c", "fillOpacity": 0.85, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 6, "stroke": true, "weight": 3}
+            ).addTo(map_47ad84b0cfd92d2718f03a9879496bda);
+        
+    
+        var popup_b91eeaf62ec2f960cb9fc71934e93edd = L.popup({
+  "maxWidth": "100%",
+});
+
+        
+            
+                var html_c2315c8912c8ff9acb2bad3cff8186ca = $(`<div id="html_c2315c8912c8ff9acb2bad3cff8186ca" style="width: 100.0%; height: 100.0%;"><b>US 112 CS Dr José Dustan Carvalho Soares</b><br>Vehicle: 8<br>Demand: 11</div>`)[0];
+                popup_b91eeaf62ec2f960cb9fc71934e93edd.setContent(html_c2315c8912c8ff9acb2bad3cff8186ca);
+            
+        
+
+        circle_marker_f99bc23d55ae8bbd5f2cf590b971cb3a.bindPopup(popup_b91eeaf62ec2f960cb9fc71934e93edd)
+        ;
+
+        
+    
+    
+            circle_marker_f99bc23d55ae8bbd5f2cf590b971cb3a.bindTooltip(
+                `<div>
+                     V8: US 112 CS Dr José Dustan Carvalho Soares
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var poly_line_22425c0845583e844f46ecada2dd6e06 = L.polyline(
+                [[-8.0598, -34.9225], [-8.03069297999, -34.9557636317], [-8.00132259812, -34.9354796789], [-8.00138177008, -34.9248708874], [-8.01629782987, -34.9210997659], [-8.03856413665, -34.9310490866], [-8.0598, -34.9225]],
+                {"bubblingMouseEvents": true, "color": "#bcf60c", "dashArray": null, "dashOffset": null, "fill": false, "fillColor": "#bcf60c", "fillOpacity": 0.2, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "noClip": false, "opacity": 0.8, "smoothFactor": 1.0, "stroke": true, "weight": 3.5}
+            ).addTo(map_47ad84b0cfd92d2718f03a9879496bda);
+        
+    
+            poly_line_22425c0845583e844f46ecada2dd6e06.bindTooltip(
+                `<div>
+                     Vehicle 8 (5 units, load 88/100)
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var circle_marker_9375d8607cfbcf930f55073ea967e94b = L.circleMarker(
+                [-8.03066929615, -34.9327352608],
+                {"bubblingMouseEvents": true, "color": "#fabebe", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "#fabebe", "fillOpacity": 0.85, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 6, "stroke": true, "weight": 3}
+            ).addTo(map_47ad84b0cfd92d2718f03a9879496bda);
+        
+    
+        var popup_439147695d263b05a8f49a24279d5201 = L.popup({
+  "maxWidth": "100%",
+});
+
+        
+            
+                var html_4eb754eeef3b5efd83143719e6159360 = $(`<div id="html_4eb754eeef3b5efd83143719e6159360" style="width: 100.0%; height: 100.0%;"><b>us 184 psf vila união</b><br>Vehicle: 9<br>Demand: 23</div>`)[0];
+                popup_439147695d263b05a8f49a24279d5201.setContent(html_4eb754eeef3b5efd83143719e6159360);
+            
+        
+
+        circle_marker_9375d8607cfbcf930f55073ea967e94b.bindPopup(popup_439147695d263b05a8f49a24279d5201)
+        ;
+
+        
+    
+    
+            circle_marker_9375d8607cfbcf930f55073ea967e94b.bindTooltip(
+                `<div>
+                     V9: us 184 psf vila união
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var circle_marker_6a8251ed323a333a92c321e92888fdb2 = L.circleMarker(
+                [-8.03756229783, -34.9248941427],
+                {"bubblingMouseEvents": true, "color": "#fabebe", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "#fabebe", "fillOpacity": 0.85, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 6, "stroke": true, "weight": 3}
+            ).addTo(map_47ad84b0cfd92d2718f03a9879496bda);
+        
+    
+        var popup_5ce9940a5a00f840b0e1a33b4345e115 = L.popup({
+  "maxWidth": "100%",
+});
+
+        
+            
+                var html_7a32d4079d9eebeb5a6398a7aa57d636 = $(`<div id="html_7a32d4079d9eebeb5a6398a7aa57d636" style="width: 100.0%; height: 100.0%;"><b>us 182 psf poço da panela</b><br>Vehicle: 9<br>Demand: 28</div>`)[0];
+                popup_5ce9940a5a00f840b0e1a33b4345e115.setContent(html_7a32d4079d9eebeb5a6398a7aa57d636);
+            
+        
+
+        circle_marker_6a8251ed323a333a92c321e92888fdb2.bindPopup(popup_5ce9940a5a00f840b0e1a33b4345e115)
+        ;
+
+        
+    
+    
+            circle_marker_6a8251ed323a333a92c321e92888fdb2.bindTooltip(
+                `<div>
+                     V9: us 182 psf poço da panela
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var circle_marker_b9c120b164e5814fcb22b2574da398cd = L.circleMarker(
+                [-8.02287521252, -34.9161884653],
+                {"bubblingMouseEvents": true, "color": "#fabebe", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "#fabebe", "fillOpacity": 0.85, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 6, "stroke": true, "weight": 3}
+            ).addTo(map_47ad84b0cfd92d2718f03a9879496bda);
+        
+    
+        var popup_899272ac5d04424e0bfd46b7aa22b31d = L.popup({
+  "maxWidth": "100%",
+});
+
+        
+            
+                var html_4d06858e48710b0350ded6fb22648bf4 = $(`<div id="html_4d06858e48710b0350ded6fb22648bf4" style="width: 100.0%; height: 100.0%;"><b>US 103 CS Prof Mário Ramos</b><br>Vehicle: 9<br>Demand: 23</div>`)[0];
+                popup_899272ac5d04424e0bfd46b7aa22b31d.setContent(html_4d06858e48710b0350ded6fb22648bf4);
+            
+        
+
+        circle_marker_b9c120b164e5814fcb22b2574da398cd.bindPopup(popup_899272ac5d04424e0bfd46b7aa22b31d)
+        ;
+
+        
+    
+    
+            circle_marker_b9c120b164e5814fcb22b2574da398cd.bindTooltip(
+                `<div>
+                     V9: US 103 CS Prof Mário Ramos
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var circle_marker_9a4b4308a320088cd20922c2abad8f85 = L.circleMarker(
+                [-8.0638141226, -34.9137048089],
+                {"bubblingMouseEvents": true, "color": "#fabebe", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "#fabebe", "fillOpacity": 0.85, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 6, "stroke": true, "weight": 3}
+            ).addTo(map_47ad84b0cfd92d2718f03a9879496bda);
+        
+    
+        var popup_645781139eccc28e28e72cf1ad9278b7 = L.popup({
+  "maxWidth": "100%",
+});
+
+        
+            
+                var html_8ccf220321ead397da15526a3686f397 = $(`<div id="html_8ccf220321ead397da15526a3686f397" style="width: 100.0%; height: 100.0%;"><b>US 161 CS Prof Romero Marques</b><br>Vehicle: 9<br>Demand: 26</div>`)[0];
+                popup_645781139eccc28e28e72cf1ad9278b7.setContent(html_8ccf220321ead397da15526a3686f397);
+            
+        
+
+        circle_marker_9a4b4308a320088cd20922c2abad8f85.bindPopup(popup_645781139eccc28e28e72cf1ad9278b7)
+        ;
+
+        
+    
+    
+            circle_marker_9a4b4308a320088cd20922c2abad8f85.bindTooltip(
+                `<div>
+                     V9: US 161 CS Prof Romero Marques
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var poly_line_aa6d5cf0659e72b3928aa1e8d14642dd = L.polyline(
+                [[-8.0598, -34.9225], [-8.03066929615, -34.9327352608], [-8.03756229783, -34.9248941427], [-8.02287521252, -34.9161884653], [-8.0638141226, -34.9137048089], [-8.0598, -34.9225]],
+                {"bubblingMouseEvents": true, "color": "#fabebe", "dashArray": null, "dashOffset": null, "fill": false, "fillColor": "#fabebe", "fillOpacity": 0.2, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "noClip": false, "opacity": 0.8, "smoothFactor": 1.0, "stroke": true, "weight": 3.5}
+            ).addTo(map_47ad84b0cfd92d2718f03a9879496bda);
+        
+    
+            poly_line_aa6d5cf0659e72b3928aa1e8d14642dd.bindTooltip(
+                `<div>
+                     Vehicle 9 (4 units, load 100/100)
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+</script>
+</html>

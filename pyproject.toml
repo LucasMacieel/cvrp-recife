@@ -1,0 +1,21 @@
+[project]
+name = "cvrp-memetic-recife"
+version = "0.1.0"
+description = "Memetic Genetic Algorithm for CVRP applied to CVRPLIB benchmarks and medical supply distribution across UBS/USF health units in Recife/PE"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "numpy>=1.24",
+    "scipy>=1.10",
+    "matplotlib>=3.7",
+    "folium>=0.14",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.4",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]

@@ -1,0 +1,419 @@
+{
+  "name": "Recife-UBS-40",
+  "capacity": 100,
+  "depot": 0,
+  "distance_unit": "km",
+  "source": "Recife Open Data (UBS/USF) + OSRM driving table (km)",
+  "nodes": [
+    {
+      "id": "DEPOT-CAF",
+      "name": "Central de Abastecimento Farmacêutico (CAF Recife)",
+      "type": "DEPOT",
+      "rpa": "5",
+      "bairro": "Bongi",
+      "lat": -8.0598,
+      "lon": -34.9225,
+      "demand": 0
+    },
+    {
+      "id": "UBS-0002143",
+      "name": "US 123 CS Prof César Montezuma",
+      "type": "UBS",
+      "rpa": "1",
+      "bairro": "BAIRRO DO RECIFE",
+      "lat": -8.05433824479,
+      "lon": -34.8721674263,
+      "demand": 11
+    },
+    {
+      "id": "UBS-0000825",
+      "name": "US 155 CS Prof Monteiro de Morais",
+      "type": "UBS",
+      "rpa": "2",
+      "bairro": "BEBERIBE",
+      "lat": -8.00393487891,
+      "lon": -34.8966966079,
+      "demand": 26
+    },
+    {
+      "id": "UBS-0001759",
+      "name": "US 103 CS Prof Mário Ramos",
+      "type": "UBS",
+      "rpa": "3",
+      "bairro": "CASA AMARELA",
+      "lat": -8.02287521252,
+      "lon": -34.9161884653,
+      "demand": 23
+    },
+    {
+      "id": "UBS-0001163",
+      "name": "US 109 CS Francisco Pignatari",
+      "type": "UBS",
+      "rpa": "3",
+      "bairro": "CASA AMARELA",
+      "lat": -8.02755901116,
+      "lon": -34.9186940689,
+      "demand": 19
+    },
+    {
+      "id": "UBS-0001317",
+      "name": "US 120 CS Mário Monteiro Melo",
+      "type": "UBS",
+      "rpa": "3",
+      "bairro": "NOVA DESCOBERTA",
+      "lat": -8.01897516671,
+      "lon": -34.9263286638,
+      "demand": 19
+    },
+    {
+      "id": "UBS-0001058",
+      "name": "US 121 CS Prof Bruno Maia",
+      "type": "UBS",
+      "rpa": "3",
+      "bairro": "NOVA DESCOBERTA",
+      "lat": -8.00130829104,
+      "lon": -34.9247265631,
+      "demand": 28
+    },
+    {
+      "id": "UBS-0001236",
+      "name": "US 152 CS Iná Rosa Borges",
+      "type": "UBS",
+      "rpa": "3",
+      "bairro": "VASCO DA GAMA",
+      "lat": -8.01629782987,
+      "lon": -34.9210997659,
+      "demand": 11
+    },
+    {
+      "id": "UBS-0002011",
+      "name": "US 171 CS Joaquim Costa Carvalho",
+      "type": "UBS",
+      "rpa": "3",
+      "bairro": "ALTO DO MANDU",
+      "lat": -8.02434824565,
+      "lon": -34.9284859357,
+      "demand": 24
+    },
+    {
+      "id": "UBS-0000639",
+      "name": "US 106 CS Prof Joaquim Cavalcante",
+      "type": "UBS",
+      "rpa": "4",
+      "bairro": "TORROES",
+      "lat": -8.05888388976,
+      "lon": -34.9319138572,
+      "demand": 14
+    },
+    {
+      "id": "UBS-0001813",
+      "name": "US 112 CS Dr José Dustan Carvalho Soares",
+      "type": "UBS",
+      "rpa": "4",
+      "bairro": "IPUTINGA",
+      "lat": -8.03856413665,
+      "lon": -34.9310490866,
+      "demand": 11
+    },
+    {
+      "id": "UBS-0000817",
+      "name": "US 149 CS Olinto Oliveira",
+      "type": "UBS",
+      "rpa": "4",
+      "bairro": "CAXANGA",
+      "lat": -8.03069297999,
+      "lon": -34.9557636317,
+      "demand": 21
+    },
+    {
+      "id": "UBS-0001414",
+      "name": "US 117 CS Gaspar Regueira Costa",
+      "type": "UBS",
+      "rpa": "5",
+      "bairro": "BARRO",
+      "lat": -8.08983612925,
+      "lon": -34.9422091091,
+      "demand": 30
+    },
+    {
+      "id": "UBS-0000868",
+      "name": "US 142 CS Bidu Krause",
+      "type": "UBS",
+      "rpa": "5",
+      "bairro": "TOTO",
+      "lat": -8.07937775047,
+      "lon": -34.9703681618,
+      "demand": 25
+    },
+    {
+      "id": "UBS-0000841",
+      "name": "US 150 CS Professor Fernandes Figueiras",
+      "type": "UBS",
+      "rpa": "5",
+      "bairro": "JARDIM SAO PAULO",
+      "lat": -8.08120706352,
+      "lon": -34.9403475908,
+      "demand": 25
+    },
+    {
+      "id": "UBS-0001368",
+      "name": "US 158 Pam Ceasa",
+      "type": "UBS",
+      "rpa": "5",
+      "bairro": "CURADO",
+      "lat": -8.07289705871,
+      "lon": -34.9434788213,
+      "demand": 25
+    },
+    {
+      "id": "UBS-0000760",
+      "name": "US 161 CS Prof Romero Marques",
+      "type": "UBS",
+      "rpa": "5",
+      "bairro": "PRADO",
+      "lat": -8.0638141226,
+      "lon": -34.9137048089,
+      "demand": 26
+    },
+    {
+      "id": "UBS-0001082",
+      "name": "US 104 CS Sebastião Ivo Rabelo",
+      "type": "UBS",
+      "rpa": "6",
+      "bairro": "COHAB",
+      "lat": -8.11972179209,
+      "lon": -34.9481235001,
+      "demand": 20
+    },
+    {
+      "id": "UBS-0001198",
+      "name": "US 113 CS Dr Aristarco Azevedo",
+      "type": "UBS",
+      "rpa": "6",
+      "bairro": "JORDAO",
+      "lat": -8.13157772571,
+      "lon": -34.9370099337,
+      "demand": 12
+    },
+    {
+      "id": "UBS-0000752",
+      "name": "US 119 CS Prof José Carneiro Leão",
+      "type": "UBS",
+      "rpa": "6",
+      "bairro": "PINA",
+      "lat": -8.08741278665,
+      "lon": -34.8897945879,
+      "demand": 27
+    },
+    {
+      "id": "UBS-0001090",
+      "name": "US 126 CS Ver Romildo Gomes",
+      "type": "UBS",
+      "rpa": "6",
+      "bairro": "IMBIRIBEIRA",
+      "lat": -8.11682838797,
+      "lon": -34.9109908443,
+      "demand": 19
+    },
+    {
+      "id": "UBS-0000833",
+      "name": "US 137 CS Prof Djair Brindeiro",
+      "type": "UBS",
+      "rpa": "6",
+      "bairro": "BOA VIAGEM",
+      "lat": -8.14823767649,
+      "lon": -34.9137397316,
+      "demand": 20
+    },
+    {
+      "id": "UBS-0001392",
+      "name": "US 148 CS Dom Miguel de Lima Valverde",
+      "type": "UBS",
+      "rpa": "6",
+      "bairro": "BOA VIAGEM",
+      "lat": -8.13342108939,
+      "lon": -34.904659968,
+      "demand": 17
+    },
+    {
+      "id": "USF-0001252",
+      "name": "us 218 psf coque",
+      "type": "USF",
+      "rpa": "1",
+      "bairro": "ilha joana bezerra",
+      "lat": -8.071519065,
+      "lon": -34.9000069344,
+      "demand": 13
+    },
+    {
+      "id": "USF-0000876",
+      "name": "us 138 psf dr luiz wilson",
+      "type": "USF",
+      "rpa": "2",
+      "bairro": "bomba do hemeterio",
+      "lat": -8.02113990094,
+      "lon": -34.9044131838,
+      "demand": 29
+    },
+    {
+      "id": "USF-9999999",
+      "name": "us 121 psf prof bruno maia",
+      "type": "USF",
+      "rpa": "3",
+      "bairro": "nova descoberta",
+      "lat": -8.00138177008,
+      "lon": -34.9248708874,
+      "demand": 26
+    },
+    {
+      "id": "USF-0001511",
+      "name": "us 184 psf vila união",
+      "type": "USF",
+      "rpa": "4",
+      "bairro": "iputinga",
+      "lat": -8.03066929615,
+      "lon": -34.9327352608,
+      "demand": 23
+    },
+    {
+      "id": "USF-0000965",
+      "name": "us 177 psf chico mendes",
+      "type": "USF",
+      "rpa": "5",
+      "bairro": "caçote",
+      "lat": -8.10304864422,
+      "lon": -34.9326387231,
+      "demand": 18
+    },
+    {
+      "id": "USF-9999999",
+      "name": "us 137 psf borborema dr djair brindeiro",
+      "type": "USF",
+      "rpa": "6",
+      "bairro": "boa viagem",
+      "lat": -8.14813320109,
+      "lon": -34.9135759982,
+      "demand": 27
+    },
+    {
+      "id": "USF-0022187",
+      "name": "us 232 psf ilha santa terezinha",
+      "type": "USF",
+      "rpa": "1",
+      "bairro": "santo amaro",
+      "lat": -8.03967592105,
+      "lon": -34.8769693087,
+      "demand": 21
+    },
+    {
+      "id": "USF-9999999",
+      "name": "us 155 psf professor monteiro de morais",
+      "type": "USF",
+      "rpa": "2",
+      "bairro": "beberibe",
+      "lat": -8.00409891123,
+      "lon": -34.8969181401,
+      "demand": 19
+    },
+    {
+      "id": "USF-0001244",
+      "name": "us 175 psf dr diogenes cavalcanti",
+      "type": "USF",
+      "rpa": "3",
+      "bairro": "nova descoberta",
+      "lat": -8.00132259812,
+      "lon": -34.9354796789,
+      "demand": 19
+    },
+    {
+      "id": "USF-0022373",
+      "name": "us 224 psf caranguejo",
+      "type": "USF",
+      "rpa": "4",
+      "bairro": "ilha do retiro",
+      "lat": -8.06490661952,
+      "lon": -34.9053121757,
+      "demand": 14
+    },
+    {
+      "id": "USF-0001112",
+      "name": "us 186 psf jardim uchôa",
+      "type": "USF",
+      "rpa": "5",
+      "bairro": "areias",
+      "lat": -8.10100432002,
+      "lon": -34.9379279244,
+      "demand": 11
+    },
+    {
+      "id": "USF-0002062",
+      "name": "us 172 psf três carneiros",
+      "type": "USF",
+      "rpa": "6",
+      "bairro": "cohab",
+      "lat": -8.12535688953,
+      "lon": -34.9582189795,
+      "demand": 21
+    },
+    {
+      "id": "USF-0022195",
+      "name": "us 240 psf coelhos i",
+      "type": "USF",
+      "rpa": "1",
+      "bairro": "coelhos",
+      "lat": -8.06824062912,
+      "lon": -34.8904550466,
+      "demand": 28
+    },
+    {
+      "id": "USF-0001503",
+      "name": "us 179 psf alto do céu",
+      "type": "USF",
+      "rpa": "2",
+      "bairro": "porto da madeira",
+      "lat": -8.00969165338,
+      "lon": -34.8915349122,
+      "demand": 11
+    },
+    {
+      "id": "USF-0020567",
+      "name": "us 182 psf poço da panela",
+      "type": "USF",
+      "rpa": "3",
+      "bairro": "poco da panela",
+      "lat": -8.03756229783,
+      "lon": -34.9248941427,
+      "demand": 28
+    },
+    {
+      "id": "USF-0022306",
+      "name": "us 225 psf skylab ii",
+      "type": "USF",
+      "rpa": "4",
+      "bairro": "iputinga",
+      "lat": -8.03881197573,
+      "lon": -34.9307208253,
+      "demand": 27
+    },
+    {
+      "id": "USF-0022403",
+      "name": "us 238 psf iraque",
+      "type": "USF",
+      "rpa": "5",
+      "bairro": "estancia",
+      "lat": -8.09067369316,
+      "lon": -34.9279012605,
+      "demand": 15
+    },
+    {
+      "id": "USF-0002070",
+      "name": "us 173 psf dancing days",
+      "type": "USF",
+      "rpa": "6",
+      "bairro": "imbiribeira",
+      "lat": -8.10369000417,
+      "lon": -34.9216864536,
+      "demand": 23
+    }
+  ]
+}
