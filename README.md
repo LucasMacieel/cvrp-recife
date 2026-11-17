@@ -51,6 +51,8 @@ pytest
 
 ### 2. Optional Recife/PE dataset preparation (already versioned in `data/recife_ubs/`)
 
+The static dataset consolidates 40 primary care units (**UBS** and **USF** — *Unidades Básicas de Saúde* and *Unidades de Saúde da Família*) from Recife Open Data along with the central depot (`CAF Recife`).
+
 ```bash
 python scripts/prepare_recife_data.py
 ```
