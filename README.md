@@ -70,8 +70,21 @@ Optional CLI parameters available (`--phase1-seeds`, `--phase2-seeds`, `--pop-si
 Results are saved in `results/`:
 - `phase1_ablation.csv`, `phase1_summary.csv`
 - `phase2_results.csv`, `phase2_summary.csv`, `phase2_stats_tests.csv`
+- `phase2_histories.json`, `best_solutions.json`
 - `convergence_*.png`, `boxplot_*.png`
 - `recife_map.html`
+
+## Output Format & Node Index Mapping (`best_solutions.json`)
+
+[`results/best_solutions.json`](results/best_solutions.json) stores the best route plans per instance and solver (`Greedy`, `Pure_GA`, `Memetic_GA`):
+
+- **Best-of-seeds selection:** For `Pure_GA` and `Memetic_GA`, the saved entry is the single run with the lowest `distance` across all Phase 2 seeds (not an average).
+- **Route representation (`routes`):** A `list[list[int]]` where each inner list is one vehicle's ordered sequence of customer visits (`len(routes) == num_vehicles`).
+- **Implicit depot (`0`):** The depot index (`0`) is omitted from every inner list; each route implicitly starts and ends at the depot (`0 -> r[0] -> ... -> r[-1] -> 0`).
+- **0-based node index mapping:**
+  - **Recife (`Recife-UBS-40-road`, `Recife-UBS-40-haversine`):** Indices `0..40` match the 0-based array position in `"nodes"` inside [`data/recife_ubs/recife_ubs.json`](data/recife_ubs/recife_ubs.json) (`0` is `DEPOT-CAF`; `1..40` are the 40 UBS/USF units).
+  - **CVRPLIB (`A-n32-k5`, `A-n45-k6`, `A-n60-k9`, `A-n80-k10`):** `.vrp` files use 1-based IDs in `NODE_COORD_SECTION`; [`load_cvrplib`](src/data/cvrplib_loader.py) sorts those IDs and reindexes them to 0-based (`idx = node_id - 1`, so `.vrp` node `1` becomes `0`, node `2` becomes `1`, etc.).
+- **Distance units & symmetry:** CVRPLIB distances use TSPLIB `EUC_2D` nearest-integer rounding (`floor(d + 0.5)`). Recife distances are in kilometers (`km`), using geodesic Haversine distances (`Recife-UBS-40-haversine`) or a precomputed OSRM driving matrix (`Recife-UBS-40-road`, which may be asymmetric due to one-way streets).
 
 ## Recife Routes Map
 
