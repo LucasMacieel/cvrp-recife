@@ -3,7 +3,22 @@
   "capacity": 100,
   "depot": 0,
   "distance_unit": "km",
-  "source": "Recife Open Data (UBS/USF) + OSRM driving table (km)",
+  "source": "Recife Open Data (UBS/USF + medicamentos-por-unidade-de-saude.csv) + OSRM driving table (km)",
+  "demand_metadata": {
+    "method": "stockout_count_minmax",
+    "source_url": "https://dados.recife.pe.gov.br/dataset/8ae2b6b5-51b5-403a-9dea-973a8ed1aca4/resource/1b8142f9-d801-4b54-88ca-5a1df3bd6884/download/medicamentos-por-unidade-de-saude.csv",
+    "data_carga": "2024-10-10",
+    "d_min": 10,
+    "d_max": 40,
+    "raw_min": 82,
+    "raw_max": 212,
+    "match_summary": {
+      "us_code": 35,
+      "name_bairro": 0,
+      "type_median_fallback": 5,
+      "global_median_fallback": 0
+    }
+  },
   "nodes": [
     {
       "id": "DEPOT-CAF",
@@ -23,7 +38,10 @@
       "bairro": "BAIRRO DO RECIFE",
       "lat": -8.05433824479,
       "lon": -34.8721674263,
-      "demand": 11
+      "demand": 10,
+      "raw_stockouts": 82,
+      "total_items": 188,
+      "demand_match_method": "us_code"
     },
     {
       "id": "UBS-0000825",
@@ -33,7 +51,10 @@
       "bairro": "BEBERIBE",
       "lat": -8.00393487891,
       "lon": -34.8966966079,
-      "demand": 26
+      "demand": 23,
+      "raw_stockouts": 139,
+      "total_items": 234,
+      "demand_match_method": "us_code"
     },
     {
       "id": "UBS-0001759",
@@ -43,7 +64,10 @@
       "bairro": "CASA AMARELA",
       "lat": -8.02287521252,
       "lon": -34.9161884653,
-      "demand": 23
+      "demand": 35,
+      "raw_stockouts": 192,
+      "total_items": 208,
+      "demand_match_method": "us_code"
     },
     {
       "id": "UBS-0001163",
@@ -53,7 +77,10 @@
       "bairro": "CASA AMARELA",
       "lat": -8.02755901116,
       "lon": -34.9186940689,
-      "demand": 19
+      "demand": 13,
+      "raw_stockouts": 95,
+      "total_items": 228,
+      "demand_match_method": "us_code"
     },
     {
       "id": "UBS-0001317",
@@ -63,7 +90,10 @@
       "bairro": "NOVA DESCOBERTA",
       "lat": -8.01897516671,
       "lon": -34.9263286638,
-      "demand": 19
+      "demand": 13,
+      "raw_stockouts": 97,
+      "total_items": 218,
+      "demand_match_method": "us_code"
     },
     {
       "id": "UBS-0001058",
@@ -73,7 +103,10 @@
       "bairro": "NOVA DESCOBERTA",
       "lat": -8.00130829104,
       "lon": -34.9247265631,
-      "demand": 28
+      "demand": 19,
+      "raw_stockouts": 119,
+      "total_items": 243,
+      "demand_match_method": "us_code"
     },
     {
       "id": "UBS-0001236",
@@ -83,7 +116,10 @@
       "bairro": "VASCO DA GAMA",
       "lat": -8.01629782987,
       "lon": -34.9210997659,
-      "demand": 11
+      "demand": 17,
+      "raw_stockouts": 113,
+      "total_items": 240,
+      "demand_match_method": "us_code"
     },
     {
       "id": "UBS-0002011",
@@ -93,7 +129,10 @@
       "bairro": "ALTO DO MANDU",
       "lat": -8.02434824565,
       "lon": -34.9284859357,
-      "demand": 24
+      "demand": 19,
+      "raw_stockouts": 123,
+      "total_items": 245,
+      "demand_match_method": "us_code"
     },
     {
       "id": "UBS-0000639",
@@ -103,7 +142,10 @@
       "bairro": "TORROES",
       "lat": -8.05888388976,
       "lon": -34.9319138572,
-      "demand": 14
+      "demand": 25,
+      "raw_stockouts": 146,
+      "total_items": 330,
+      "demand_match_method": "us_code"
     },
     {
       "id": "UBS-0001813",
@@ -113,7 +155,10 @@
       "bairro": "IPUTINGA",
       "lat": -8.03856413665,
       "lon": -34.9310490866,
-      "demand": 11
+      "demand": 34,
+      "raw_stockouts": 188,
+      "total_items": 366,
+      "demand_match_method": "us_code"
     },
     {
       "id": "UBS-0000817",
@@ -123,7 +168,10 @@
       "bairro": "CAXANGA",
       "lat": -8.03069297999,
       "lon": -34.9557636317,
-      "demand": 21
+      "demand": 13,
+      "raw_stockouts": 93,
+      "total_items": 205,
+      "demand_match_method": "us_code"
     },
     {
       "id": "UBS-0001414",
@@ -133,7 +181,10 @@
       "bairro": "BARRO",
       "lat": -8.08983612925,
       "lon": -34.9422091091,
-      "demand": 30
+      "demand": 17,
+      "raw_stockouts": 112,
+      "total_items": 217,
+      "demand_match_method": "us_code"
     },
     {
       "id": "UBS-0000868",
@@ -143,7 +194,10 @@
       "bairro": "TOTO",
       "lat": -8.07937775047,
       "lon": -34.9703681618,
-      "demand": 25
+      "demand": 25,
+      "raw_stockouts": 148,
+      "total_items": 334,
+      "demand_match_method": "us_code"
     },
     {
       "id": "UBS-0000841",
@@ -153,7 +207,10 @@
       "bairro": "JARDIM SAO PAULO",
       "lat": -8.08120706352,
       "lon": -34.9403475908,
-      "demand": 25
+      "demand": 40,
+      "raw_stockouts": 212,
+      "total_items": 215,
+      "demand_match_method": "us_code"
     },
     {
       "id": "UBS-0001368",
@@ -163,7 +220,10 @@
       "bairro": "CURADO",
       "lat": -8.07289705871,
       "lon": -34.9434788213,
-      "demand": 25
+      "demand": 10,
+      "raw_stockouts": 82,
+      "total_items": 209,
+      "demand_match_method": "us_code"
     },
     {
       "id": "UBS-0000760",
@@ -173,7 +233,10 @@
       "bairro": "PRADO",
       "lat": -8.0638141226,
       "lon": -34.9137048089,
-      "demand": 26
+      "demand": 18,
+      "raw_stockouts": 115,
+      "total_items": 222,
+      "demand_match_method": "us_code"
     },
     {
       "id": "UBS-0001082",
@@ -183,7 +246,10 @@
       "bairro": "COHAB",
       "lat": -8.11972179209,
       "lon": -34.9481235001,
-      "demand": 20
+      "demand": 20,
+      "raw_stockouts": 127,
+      "total_items": 236,
+      "demand_match_method": "us_code"
     },
     {
       "id": "UBS-0001198",
@@ -193,7 +259,10 @@
       "bairro": "JORDAO",
       "lat": -8.13157772571,
       "lon": -34.9370099337,
-      "demand": 12
+      "demand": 12,
+      "raw_stockouts": 89,
+      "total_items": 205,
+      "demand_match_method": "us_code"
     },
     {
       "id": "UBS-0000752",
@@ -203,7 +272,11 @@
       "bairro": "PINA",
       "lat": -8.08741278665,
       "lon": -34.8897945879,
-      "demand": 27
+      "demand": 18,
+      "raw_stockouts": null,
+      "total_items": null,
+      "demand_match_method": "type_median_fallback",
+      "imputed_stockouts": 115.0
     },
     {
       "id": "UBS-0001090",
@@ -213,7 +286,10 @@
       "bairro": "IMBIRIBEIRA",
       "lat": -8.11682838797,
       "lon": -34.9109908443,
-      "demand": 19
+      "demand": 26,
+      "raw_stockouts": 151,
+      "total_items": 288,
+      "demand_match_method": "us_code"
     },
     {
       "id": "UBS-0000833",
@@ -223,7 +299,10 @@
       "bairro": "BOA VIAGEM",
       "lat": -8.14823767649,
       "lon": -34.9137397316,
-      "demand": 20
+      "demand": 13,
+      "raw_stockouts": 97,
+      "total_items": 211,
+      "demand_match_method": "us_code"
     },
     {
       "id": "UBS-0001392",
@@ -233,7 +312,10 @@
       "bairro": "BOA VIAGEM",
       "lat": -8.13342108939,
       "lon": -34.904659968,
-      "demand": 17
+      "demand": 13,
+      "raw_stockouts": 93,
+      "total_items": 207,
+      "demand_match_method": "us_code"
     },
     {
       "id": "USF-0001252",
@@ -243,7 +325,10 @@
       "bairro": "ilha joana bezerra",
       "lat": -8.071519065,
       "lon": -34.9000069344,
-      "demand": 13
+      "demand": 21,
+      "raw_stockouts": 130,
+      "total_items": 221,
+      "demand_match_method": "us_code"
     },
     {
       "id": "USF-0000876",
@@ -253,7 +338,11 @@
       "bairro": "bomba do hemeterio",
       "lat": -8.02113990094,
       "lon": -34.9044131838,
-      "demand": 29
+      "demand": 14,
+      "raw_stockouts": null,
+      "total_items": null,
+      "demand_match_method": "type_median_fallback",
+      "imputed_stockouts": 99.5
     },
     {
       "id": "USF-9999999",
@@ -263,7 +352,10 @@
       "bairro": "nova descoberta",
       "lat": -8.00138177008,
       "lon": -34.9248708874,
-      "demand": 26
+      "demand": 19,
+      "raw_stockouts": 119,
+      "total_items": 243,
+      "demand_match_method": "us_code"
     },
     {
       "id": "USF-0001511",
@@ -273,7 +365,10 @@
       "bairro": "iputinga",
       "lat": -8.03066929615,
       "lon": -34.9327352608,
-      "demand": 23
+      "demand": 14,
+      "raw_stockouts": 99,
+      "total_items": 204,
+      "demand_match_method": "us_code"
     },
     {
       "id": "USF-0000965",
@@ -283,7 +378,10 @@
       "bairro": "caçote",
       "lat": -8.10304864422,
       "lon": -34.9326387231,
-      "demand": 18
+      "demand": 18,
+      "raw_stockouts": 117,
+      "total_items": 217,
+      "demand_match_method": "us_code"
     },
     {
       "id": "USF-9999999",
@@ -293,7 +391,10 @@
       "bairro": "boa viagem",
       "lat": -8.14813320109,
       "lon": -34.9135759982,
-      "demand": 27
+      "demand": 13,
+      "raw_stockouts": 97,
+      "total_items": 211,
+      "demand_match_method": "us_code"
     },
     {
       "id": "USF-0022187",
@@ -303,7 +404,10 @@
       "bairro": "santo amaro",
       "lat": -8.03967592105,
       "lon": -34.8769693087,
-      "demand": 21
+      "demand": 13,
+      "raw_stockouts": 95,
+      "total_items": 205,
+      "demand_match_method": "us_code"
     },
     {
       "id": "USF-9999999",
@@ -313,7 +417,10 @@
       "bairro": "beberibe",
       "lat": -8.00409891123,
       "lon": -34.8969181401,
-      "demand": 19
+      "demand": 23,
+      "raw_stockouts": 139,
+      "total_items": 234,
+      "demand_match_method": "us_code"
     },
     {
       "id": "USF-0001244",
@@ -323,7 +430,10 @@
       "bairro": "nova descoberta",
       "lat": -8.00132259812,
       "lon": -34.9354796789,
-      "demand": 19
+      "demand": 13,
+      "raw_stockouts": 97,
+      "total_items": 217,
+      "demand_match_method": "us_code"
     },
     {
       "id": "USF-0022373",
@@ -333,7 +443,11 @@
       "bairro": "ilha do retiro",
       "lat": -8.06490661952,
       "lon": -34.9053121757,
-      "demand": 14
+      "demand": 14,
+      "raw_stockouts": null,
+      "total_items": null,
+      "demand_match_method": "type_median_fallback",
+      "imputed_stockouts": 99.5
     },
     {
       "id": "USF-0001112",
@@ -343,7 +457,10 @@
       "bairro": "areias",
       "lat": -8.10100432002,
       "lon": -34.9379279244,
-      "demand": 11
+      "demand": 12,
+      "raw_stockouts": 89,
+      "total_items": 215,
+      "demand_match_method": "us_code"
     },
     {
       "id": "USF-0002062",
@@ -353,7 +470,10 @@
       "bairro": "cohab",
       "lat": -8.12535688953,
       "lon": -34.9582189795,
-      "demand": 21
+      "demand": 15,
+      "raw_stockouts": 103,
+      "total_items": 214,
+      "demand_match_method": "us_code"
     },
     {
       "id": "USF-0022195",
@@ -363,7 +483,10 @@
       "bairro": "coelhos",
       "lat": -8.06824062912,
       "lon": -34.8904550466,
-      "demand": 28
+      "demand": 10,
+      "raw_stockouts": 83,
+      "total_items": 194,
+      "demand_match_method": "us_code"
     },
     {
       "id": "USF-0001503",
@@ -373,7 +496,11 @@
       "bairro": "porto da madeira",
       "lat": -8.00969165338,
       "lon": -34.8915349122,
-      "demand": 11
+      "demand": 14,
+      "raw_stockouts": null,
+      "total_items": null,
+      "demand_match_method": "type_median_fallback",
+      "imputed_stockouts": 99.5
     },
     {
       "id": "USF-0020567",
@@ -383,7 +510,10 @@
       "bairro": "poco da panela",
       "lat": -8.03756229783,
       "lon": -34.9248941427,
-      "demand": 28
+      "demand": 10,
+      "raw_stockouts": 82,
+      "total_items": 207,
+      "demand_match_method": "us_code"
     },
     {
       "id": "USF-0022306",
@@ -393,7 +523,11 @@
       "bairro": "iputinga",
       "lat": -8.03881197573,
       "lon": -34.9307208253,
-      "demand": 27
+      "demand": 14,
+      "raw_stockouts": null,
+      "total_items": null,
+      "demand_match_method": "type_median_fallback",
+      "imputed_stockouts": 99.5
     },
     {
       "id": "USF-0022403",
@@ -403,7 +537,10 @@
       "bairro": "estancia",
       "lat": -8.09067369316,
       "lon": -34.9279012605,
-      "demand": 15
+      "demand": 16,
+      "raw_stockouts": 107,
+      "total_items": 219,
+      "demand_match_method": "us_code"
     },
     {
       "id": "USF-0002070",
@@ -413,7 +550,10 @@
       "bairro": "imbiribeira",
       "lat": -8.10369000417,
       "lon": -34.9216864536,
-      "demand": 23
+      "demand": 14,
+      "raw_stockouts": 100,
+      "total_items": 208,
+      "demand_match_method": "us_code"
     }
   ]
 }

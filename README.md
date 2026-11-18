@@ -51,11 +51,13 @@ pytest
 
 ### 2. Optional Recife/PE dataset preparation (already versioned in `data/recife_ubs/`)
 
-The static dataset consolidates 40 primary care units (**UBS** and **USF** — *Unidades Básicas de Saúde* and *Unidades de Saúde da Família*) from Recife Open Data along with the central depot (`CAF Recife`).
+The static dataset consolidates 40 primary care units (**UBS** and **USF** — *Unidades Básicas de Saúde* and *Unidades de Saúde da Família*) from Recife Open Data along with the central depot (`CAF Recife`), estimating unit replenishment demands from municipal pharmacy stockout records (`medicamentos-por-unidade-de-saude.csv`, counting `quantidade = 0` items per unit and min-max scaling into `[10, 40]` for `capacity = 100`).
 
 ```bash
 python scripts/prepare_recife_data.py
 ```
+
+Optional CLI flags: `--output-dir`, `--d-min`, `--d-max`, `--capacity`, `--stock-csv`.
 
 ### 3. Full experimental suite (Phase 1 + Phase 2 + Plots + Recife Map)
 

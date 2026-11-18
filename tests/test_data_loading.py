@@ -149,3 +149,70 @@ def test_load_recife_haversine_fallback_when_road_missing(tmp_path: Path) -> Non
 def test_load_recife_invalid_mode() -> None:
     with pytest.raises(ValueError, match="Unsupported Recife distance mode"):
         load_recife("data/recife_ubs", mode="invalid")
+
+
+def test_load_recife_enriched_demand_metadata_offline(tmp_path: Path) -> None:
+    import json
+
+    enriched = {
+        "name": "Recife-Enriched-Test",
+        "capacity": 100,
+        "depot": 0,
+        "distance_unit": "km",
+        "source": "Test fixture",
+        "demand_metadata": {
+            "method": "stockout_count_minmax",
+            "d_min": 10,
+            "d_max": 40,
+            "raw_min": 80,
+            "raw_max": 200,
+            "match_summary": {
+                "us_code": 1,
+                "name_bairro": 0,
+                "type_median_fallback": 1,
+                "global_median_fallback": 0,
+            },
+        },
+        "nodes": [
+            {
+                "id": "DEPOT-CAF",
+                "name": "CAF Recife",
+                "type": "DEPOT",
+                "lat": -8.0598,
+                "lon": -34.9225,
+                "demand": 0,
+            },
+            {
+                "id": "UBS-1",
+                "name": "US 101 Unidade A",
+                "type": "UBS",
+                "lat": -8.05,
+                "lon": -34.88,
+                "demand": 10,
+                "raw_stockouts": 80,
+                "total_items": 300,
+                "demand_match_method": "us_code",
+            },
+            {
+                "id": "USF-1",
+                "name": "US 999 Unidade B",
+                "type": "USF",
+                "lat": -8.04,
+                "lon": -34.90,
+                "demand": 40,
+                "raw_stockouts": None,
+                "total_items": None,
+                "demand_match_method": "type_median_fallback",
+                "imputed_stockouts": 200.0,
+            },
+        ],
+    }
+    (tmp_path / "recife_ubs.json").write_text(
+        json.dumps(enriched), encoding="utf-8"
+    )
+
+    inst = load_recife(tmp_path, mode="haversine")
+    assert inst.demands.dtype == np.int64
+    assert inst.demands[inst.depot] == 0
+    assert np.all((inst.demands[1:] >= 1) & (inst.demands[1:] <= inst.capacity))
+    assert list(inst.demands) == [0, 10, 40]
