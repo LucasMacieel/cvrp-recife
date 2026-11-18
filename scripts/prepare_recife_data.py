@@ -46,20 +46,6 @@ DEPOT_NODE = {
 }
 
 
-def haversine_km(latlon: np.ndarray) -> np.ndarray:
-    """Compute pairwise Haversine distances in kilometers for (N, 2) lat/lon."""
-    rad = np.radians(latlon)
-    lat = rad[:, 0:1]
-    lon = rad[:, 1:2]
-    dlat = lat - lat.T
-    dlon = lon - lon.T
-    a = np.sin(dlat / 2.0) ** 2 + np.cos(lat) * np.cos(lat.T) * np.sin(dlon / 2.0) ** 2
-    c = 2.0 * np.arcsin(np.sqrt(np.clip(a, 0.0, 1.0)))
-    dist = 6371.0088 * c
-    np.fill_diagonal(dist, 0.0)
-    return dist
-
-
 def _fetch_csv_rows(url: str) -> list[dict[str, str]]:
     resp = requests.get(url, timeout=30)
     resp.raise_for_status()
@@ -451,28 +437,35 @@ def _collect_recife_nodes(target_customers: int = 40) -> list[dict]:
     return [dict(DEPOT_NODE)] + selected
 
 
-def _fetch_osrm_matrix(latlon: np.ndarray) -> np.ndarray | None:
+def _fetch_osrm_matrix(latlon: np.ndarray) -> np.ndarray:
+    """Fetch complete pairwise OSRM driving distances in km; fail fast on errors."""
     coords_str = ";".join(f"{lon:.6f},{lat:.6f}" for lat, lon in latlon)
     url = OSRM_TABLE_URL.format(coords=coords_str)
     try:
         resp = requests.get(url, params={"annotations": "distance"}, timeout=30)
         resp.raise_for_status()
         payload = resp.json()
-        if payload.get("code") != "Ok" or "distances" not in payload:
-            return None
-        raw = payload["distances"]
-        n = len(latlon)
-        fallback = haversine_km(latlon)
-        mat = np.empty((n, n), dtype=np.float64)
-        for i in range(n):
-            for j in range(n):
-                val = raw[i][j]
-                mat[i, j] = fallback[i, j] if val is None else float(val) / 1000.0
-        np.fill_diagonal(mat, 0.0)
-        return mat
     except Exception as exc:
-        print(f"Warning: OSRM request failed ({exc}); falling back to Haversine.")
-        return None
+        raise RuntimeError(f"OSRM road matrix request failed: {exc}") from exc
+
+    if payload.get("code") != "Ok" or "distances" not in payload:
+        raise RuntimeError(
+            f"OSRM returned invalid table response: code={payload.get('code')!r}"
+        )
+
+    raw = payload["distances"]
+    n = len(latlon)
+    mat = np.empty((n, n), dtype=np.float64)
+    for i in range(n):
+        for j in range(n):
+            val = raw[i][j]
+            if val is None:
+                raise RuntimeError(
+                    f"OSRM returned unreachable (None) distance at ({i}, {j})"
+                )
+            mat[i, j] = float(val) / 1000.0
+    np.fill_diagonal(mat, 0.0)
+    return mat
 
 
 def main(
@@ -506,12 +499,6 @@ def main(
         "Recife Open Data (UBS/USF + medicamentos-por-unidade-de-saude.csv) "
         "+ OSRM driving table (km)"
     )
-    if road_matrix is None:
-        road_matrix = haversine_km(latlon)
-        source_note = (
-            "Recife Open Data (UBS/USF + medicamentos-por-unidade-de-saude.csv) "
-            "+ Haversine fallback (km)"
-        )
 
     metadata = {
         "name": "Recife-UBS-40",

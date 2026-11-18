@@ -3,10 +3,13 @@
 from __future__ import annotations
 
 from pathlib import Path
+import numpy as np
 import pytest
+import requests
 
 from scripts.prepare_recife_data import (
     StockSummary,
+    _fetch_osrm_matrix,
     assign_empirical_demands,
     extract_us_code,
     link_nodes_to_stock,
@@ -269,3 +272,63 @@ def test_assign_empirical_demands_populates_nodes_and_metadata() -> None:
         "type_median_fallback": 1,
         "global_median_fallback": 0,
     }
+
+
+class _FakeResponse:
+    def __init__(self, payload: dict) -> None:
+        self._payload = payload
+
+    def raise_for_status(self) -> None:
+        return None
+
+    def json(self) -> dict:
+        return self._payload
+
+
+def test_fetch_osrm_matrix_raises_on_request_error(monkeypatch: pytest.MonkeyPatch) -> None:
+    def _fail(*args, **kwargs):
+        raise requests.ConnectionError("network down")
+
+    monkeypatch.setattr(requests, "get", _fail)
+    coords = np.array([[-8.05, -34.92], [-8.06, -34.88]], dtype=np.float64)
+    with pytest.raises(RuntimeError, match="OSRM road matrix request failed"):
+        _fetch_osrm_matrix(coords)
+
+
+def test_fetch_osrm_matrix_raises_on_non_ok_response(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(
+        requests,
+        "get",
+        lambda *args, **kwargs: _FakeResponse({"code": "InvalidQuery"}),
+    )
+    coords = np.array([[-8.05, -34.92], [-8.06, -34.88]], dtype=np.float64)
+    with pytest.raises(RuntimeError, match="OSRM returned invalid table response"):
+        _fetch_osrm_matrix(coords)
+
+
+def test_fetch_osrm_matrix_raises_on_unreachable_none_cell(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(
+        requests,
+        "get",
+        lambda *args, **kwargs: _FakeResponse(
+            {"code": "Ok", "distances": [[0.0, None], [1500.0, 0.0]]}
+        ),
+    )
+    coords = np.array([[-8.05, -34.92], [-8.06, -34.88]], dtype=np.float64)
+    with pytest.raises(RuntimeError, match="unreachable \\(None\\) distance"):
+        _fetch_osrm_matrix(coords)
+
+
+def test_fetch_osrm_matrix_success(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(
+        requests,
+        "get",
+        lambda *args, **kwargs: _FakeResponse(
+            {"code": "Ok", "distances": [[0.0, 2500.0], [2700.0, 0.0]]}
+        ),
+    )
+    coords = np.array([[-8.05, -34.92], [-8.06, -34.88]], dtype=np.float64)
+    mat = _fetch_osrm_matrix(coords)
+    assert np.allclose(mat, np.array([[0.0, 2.5], [2.7, 0.0]]))

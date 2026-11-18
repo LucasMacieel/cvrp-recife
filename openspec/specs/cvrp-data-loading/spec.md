@@ -17,16 +17,20 @@ The system SHALL read files in standard `.vrp` format with `EUC_2D` coordinates,
 - **WHEN** a `.vrp` file contains a customer whose individual demand exceeds vehicle capacity `Q`
 - **THEN** the system rejects the instance with a descriptive infeasibility error
 
-### Requirement: Loading the Recife/PE geographic scenario
-The system SHALL load a static local dataset of UBSs and Polyclinics in Recife/PE containing geographic coordinates, central depot identifier, per-unit demands, fleet capacity, and pre-computed distance matrix, without depending on network access during experiment execution.
+### Requirement: Loading the Recife/PE road-network scenario
+The system SHALL load a static local dataset of UBSs and Polyclinics in Recife/PE containing geographic coordinates, central depot identifier, per-unit demands, fleet capacity, and the pre-computed OSRM road-network distance matrix, without depending on network access during experiment execution, and SHALL fail with an explicit error instead of falling back to geodesic Haversine distances when road-network distances are unavailable.
 
 #### Scenario: Offline execution with pre-computed road matrix
 - **WHEN** the Recife/PE scenario is loaded without an internet connection
 - **THEN** the system uses the locally stored road distance matrix and unit metadata to build the normalized instance
 
-#### Scenario: Geodesic fallback via Haversine
-- **WHEN** a pre-computed distance matrix is missing or the geodesic distance mode is explicitly selected for geographic coordinates
-- **THEN** the system computes the distance matrix using the Haversine formula in kilometers
+#### Scenario: Missing pre-computed road distance matrix
+- **WHEN** the pre-computed road distance matrix file (`distance_matrix_road.npy`) is missing from the Recife dataset directory
+- **THEN** the system aborts loading with a descriptive `FileNotFoundError` rather than computing geodesic Haversine distances
+
+#### Scenario: Dataset preparation requires complete OSRM road matrix
+- **WHEN** dataset preparation queries the OSRM road-routing table service and the request fails, returns a non-`Ok` status, or contains unreachable (`null`) distance entries
+- **THEN** dataset preparation aborts with a descriptive error without writing a Haversine-substituted distance matrix
 
 ### Requirement: Normalized instance integrity validation
 The system SHALL validate every loaded instance before optimization, ensuring dimensional consistency between distance matrix, coordinates, and demands, absence of negative or missing (`NaN`) values, and presence of at least one customer besides the depot.

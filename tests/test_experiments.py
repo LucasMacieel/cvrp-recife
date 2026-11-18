@@ -12,6 +12,7 @@ from src.data.recife_loader import load_recife
 from src.experiments.map_recife import _fetch_osrm_route_geometry, generate_recife_map
 from src.experiments.plots import plot_comparative_boxplots, plot_convergence_curves
 from src.experiments.runner import (
+    load_recife_suite,
     run_phase1_ablation,
     run_phase2_comparison,
     select_best_operators,
@@ -78,7 +79,7 @@ def test_stats_gap_and_nonparametric_tests() -> None:
 
 def test_smoke_experiments_plots_and_recife_map(tmp_path: Path) -> None:
     inst_cvrp = load_cvrplib("data/cvrplib/A-n32-k5.vrp")
-    inst_recife = load_recife("data/recife_ubs", mode="road")
+    inst_recife = load_recife("data/recife_ubs")
 
     p1_rows = run_phase1_ablation(
         [inst_cvrp],
@@ -201,7 +202,7 @@ def test_generate_recife_map_osrm_and_fallback(
 ) -> None:
     import requests as req_lib
 
-    inst_recife = load_recife("data/recife_ubs", mode="road")
+    inst_recife = load_recife("data/recife_ubs")
     routes = [[1, 2]]
 
     # 1. Mocked OSRM road geometry includes intermediate street waypoints
@@ -268,3 +269,10 @@ def test_generate_recife_map_osrm_and_fallback(
     assert not called
     assert offline_map.exists()
     assert "L.polyline(" in offline_map.read_text(encoding="utf-8")
+
+
+def test_load_recife_suite_road_only() -> None:
+    suite = load_recife_suite("data/recife_ubs")
+    assert len(suite) == 1
+    assert suite[0].name == "Recife-UBS-40-road"
+    assert suite[0].is_symmetric is False

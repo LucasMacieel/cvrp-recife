@@ -8,7 +8,7 @@ import pytest
 
 from src.data.cvrplib_loader import load_cvrplib
 from src.data.models import CVRPInstance
-from src.data.recife_loader import compute_haversine_matrix, load_recife
+from src.data.recife_loader import load_recife
 
 
 def _valid_instance(**overrides) -> CVRPInstance:
@@ -120,35 +120,25 @@ def test_load_cvrplib_rejects_infeasible_demand(tmp_path: Path) -> None:
         load_cvrplib(bad_vrp)
 
 
-def test_load_recife_road_and_haversine() -> None:
-    road = load_recife("data/recife_ubs", mode="road")
-    hav = load_recife("data/recife_ubs", mode="haversine")
+def test_load_recife_road_only() -> None:
+    road = load_recife("data/recife_ubs")
 
+    assert road.name == "Recife-UBS-40-road"
     assert road.num_nodes == 41
     assert road.num_customers == 40
     assert road.capacity == 100
     assert road.depot == 0
+    assert road.is_symmetric is False
     assert road.latlon is not None and road.latlon.shape == (41, 2)
     assert road.node_names is not None and len(road.node_names) == 41
 
-    assert hav.num_nodes == 41
-    assert hav.is_symmetric is True
-    # Road distances in Recife are generally >= Haversine geodesic distances
-    assert float(road.distance_matrix.mean()) >= float(hav.distance_matrix.mean())
 
-
-def test_load_recife_haversine_fallback_when_road_missing(tmp_path: Path) -> None:
+def test_load_recife_missing_road_matrix_raises(tmp_path: Path) -> None:
     src_json = Path("data/recife_ubs/recife_ubs.json").read_text(encoding="utf-8")
     (tmp_path / "recife_ubs.json").write_text(src_json, encoding="utf-8")
 
-    fallback = load_recife(tmp_path, mode="road")
-    expected = compute_haversine_matrix(fallback.latlon)
-    assert np.allclose(fallback.distance_matrix, expected)
-
-
-def test_load_recife_invalid_mode() -> None:
-    with pytest.raises(ValueError, match="Unsupported Recife distance mode"):
-        load_recife("data/recife_ubs", mode="invalid")
+    with pytest.raises(FileNotFoundError, match="road distance matrix"):
+        load_recife(tmp_path)
 
 
 def test_load_recife_enriched_demand_metadata_offline(tmp_path: Path) -> None:
@@ -210,8 +200,17 @@ def test_load_recife_enriched_demand_metadata_offline(tmp_path: Path) -> None:
     (tmp_path / "recife_ubs.json").write_text(
         json.dumps(enriched), encoding="utf-8"
     )
+    road_matrix = np.array(
+        [
+            [0.0, 5.2, 3.8],
+            [5.4, 0.0, 2.7],
+            [3.6, 2.9, 0.0],
+        ],
+        dtype=np.float64,
+    )
+    np.save(tmp_path / "distance_matrix_road.npy", road_matrix)
 
-    inst = load_recife(tmp_path, mode="haversine")
+    inst = load_recife(tmp_path)
     assert inst.demands.dtype == np.int64
     assert inst.demands[inst.depot] == 0
     assert np.all((inst.demands[1:] >= 1) & (inst.demands[1:] <= inst.capacity))

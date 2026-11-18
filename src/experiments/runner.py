@@ -30,11 +30,8 @@ def load_cvrplib_suite(data_dir: str | Path = "data/cvrplib") -> list[CVRPInstan
 
 
 def load_recife_suite(data_dir: str | Path = "data/recife_ubs") -> list[CVRPInstance]:
-    """Load Recife/PE instances in both road (OSRM) and haversine modes."""
-    return [
-        load_recife(data_dir, mode="road"),
-        load_recife(data_dir, mode="haversine"),
-    ]
+    """Load the Recife/PE road-network (OSRM) instance."""
+    return [load_recife(data_dir)]
 
 
 def _make_row(
@@ -255,7 +252,7 @@ def main() -> None:
     best_cx, best_mut = select_best_operators(p1_rows)
     print(f"Phase 1 selected operators: crossover={best_cx}, mutation={best_mut}")
 
-    # Phase 2 on all 4 CVRPLIB + 2 Recife modes
+    # Phase 2 on all 4 CVRPLIB + Recife road-network instance
     p2_instances = cvrplib_instances + recife_instances
     p2_seeds = list(range(1, args.phase2_seeds + 1))
     p2_rows, p2_histories = run_phase2_comparison(
