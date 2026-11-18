@@ -41,6 +41,15 @@ source .venv/bin/activate
 pip install -r requirements.txt
 ```
 
+## Input Format & Preprocessing
+
+Both data sources are normalized into an immutable, validated [`CVRPInstance`](src/data/models.py) before entering the solver pipeline (`distance_matrix` of shape `(N, N)` with finite non-negative `float64` values, `demands` of shape `(N,)` with `demands[depot] == 0` and `0 <= demands <= capacity`, positive integer `capacity`, and automatic `is_symmetric` detection for `2-opt`):
+
+- **CVRPLIB (`.vrp`) — [`load_cvrplib`](src/data/cvrplib_loader.py):** Parses TSPLIB `EUC_2D` files (`DIMENSION`, `CAPACITY`, `NODE_COORD_SECTION`, `DEMAND_SECTION`, `DEPOT_SECTION`). 1-based node IDs are sorted and reindexed to `0..N-1`; pairwise Euclidean distances are rounded via `floor(d + 0.5)`; `optimal_value` is extracted from `COMMENT` (`Optimal/Best value`) when present.
+- **Recife/PE (`recife_ubs.json` + `distance_matrix_road.npy`) — [`load_recife`](src/data/recife_loader.py):**
+  - [`recife_ubs.json`](data/recife_ubs/recife_ubs.json): Stores `capacity` (`100`), `depot` (`0`), `demand_metadata`, and `nodes` (41 entries: index `0` is `DEPOT-CAF` with `demand: 0`; indices `1..40` are UBS/USF units with `lat`, `lon`, and integer `demand` scaled into `[10, 40]` from pharmacy stockout counts).
+  - [`distance_matrix_road.npy`](data/recife_ubs/distance_matrix_road.npy): Precomputed `(41, 41)` `float64` driving-distance matrix in `km` used in `road` mode (may be asymmetric; falls back to Haversine if absent). In `haversine` mode, pairwise geodesic distances in `km` are computed directly from `lat`/`lon`.
+
 ## Running
 
 ### 1. Unit tests and smoke tests
@@ -57,18 +66,25 @@ The static dataset consolidates 40 primary care units (**UBS** and **USF** — *
 python scripts/prepare_recife_data.py
 ```
 
-Optional CLI flags: `--output-dir`, `--d-min`, `--d-max`, `--capacity`, `--stock-csv`.
+Optional CLI flags: `--output-dir`, `--d-min`, `--d-max`, `--capacity`, `--stock-csv`. Queries Recife Open Data (unless `--stock-csv` is provided) and the public OSRM API (`router.project-osrm.org`) for driving distances, falling back to Haversine distances if OSRM is unavailable.
 
 ### 3. Full experimental suite (Phase 1 + Phase 2 + Plots + Recife Map)
+
+Run from the repository root:
 
 ```bash
 python -m src.experiments.runner
 ```
 
-Optional CLI parameters available (`--phase1-seeds`, `--phase2-seeds`, `--pop-size`, `--generations`, `--ls-rate`, `--output-dir`).
+Execution pipeline:
+1. **Phase 1 (Ablation):** Evaluates `Pure_GA` across all 4 operator pairs `(OX, PMX) × (Swap, Inversion)` on two representative CVRPLIB instances (`A-n32-k5`, `A-n60-k9`) for `--phase1-seeds` runs (default `10`), then selects the pair with the lowest overall mean distance.
+2. **Phase 2 (Comparison & Stats):** Runs across all 6 instances (`A-n32-k5`, `A-n45-k6`, `A-n60-k9`, `A-n80-k10`, `Recife-UBS-40-road`, `Recife-UBS-40-haversine`), comparing the deterministic `Greedy` baseline (`seed=0`) against `Pure_GA` and `Memetic_GA` for `--phase2-seeds` runs (default `30`) using the Phase 1 winning operators. Statistical comparison (`phase2_stats_tests.csv`) runs two-sided Wilcoxon signed-rank (paired by seed) and Mann-Whitney U tests between `Pure_GA` and `Memetic_GA` (`significant_005` when `wilcoxon_p < 0.05`).
+3. **Charts & Map:** Generates convergence curves, comparative boxplots, and the interactive Folium map (`recife_map.html`) from the best `Memetic_GA` routes on `Recife-UBS-40-road` (querying OSRM for road-snapped polylines with straight-line fallback if offline).
+
+Optional CLI parameters: `--phase1-seeds` (`10`), `--phase2-seeds` (`30`), `--pop-size` (`60`), `--generations` (`150`), `--ls-rate` (`0.30`), `--output-dir` (`results`). Fixed [`GAConfig`](src/solver/genetic.py) defaults: `crossover_rate=0.85`, `mutation_rate=0.20`, `tournament_k=3`, `elite_size=2`, `local_search_max_passes=15`.
 
 Results are saved in `results/`:
-- `phase1_ablation.csv`, `phase1_summary.csv`
+- `phase1_ablation.csv`, `phase1_summary.csv`, `phase1_histories.json`
 - `phase2_results.csv`, `phase2_summary.csv`, `phase2_stats_tests.csv`
 - `phase2_histories.json`, `best_solutions.json`
 - `convergence_*.png`, `boxplot_*.png`
