@@ -72,3 +72,11 @@ Results are saved in `results/`:
 - `phase2_results.csv`, `phase2_summary.csv`, `phase2_stats_tests.csv`
 - `convergence_*.png`, `boxplot_*.png`
 - `recife_map.html`
+
+## Recife Routes Map
+
+Click the map preview below to open the interactive Folium map ([`results/recife_map.html`](results/recife_map.html)) in your browser:
+
+[![Recife UBS/USF Routes Map](results/recife_map_preview.png)](https://lucasmacieel.github.io/cvrp-recife/results/recife_map.html)
+
+> [Open interactive map](https://lucasmacieel.github.io/cvrp-recife/results/recife_map.html) · [View source HTML](results/recife_map.html)
