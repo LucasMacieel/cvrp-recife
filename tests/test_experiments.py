@@ -2,19 +2,29 @@
 
 from __future__ import annotations
 
+from io import StringIO
 import json
 from pathlib import Path
 import numpy as np
 import pytest
+from rich.console import Console
 
 from src.data.cvrplib_loader import load_cvrplib
 from src.data.recife_loader import load_recife
 from src.experiments.map_recife import _fetch_osrm_route_geometry, generate_recife_map
 from src.experiments.plots import plot_comparative_boxplots, plot_convergence_curves
+from src.experiments.progress import (
+    create_experiment_progress,
+    format_run_detail,
+    render_phase1_summary,
+    render_phase2_summary,
+)
 from src.experiments.runner import (
+    build_arg_parser,
     load_recife_suite,
     run_phase1_ablation,
     run_phase2_comparison,
+    run_post_processing,
     select_best_operators,
 )
 from src.experiments.stats import (
@@ -276,3 +286,273 @@ def test_load_recife_suite_road_only() -> None:
     assert len(suite) == 1
     assert suite[0].name == "Recife-UBS-40-road"
     assert suite[0].is_symmetric is False
+
+
+def test_progress_formatting_and_summary_tables() -> None:
+    # With optimal_value -> includes gap%
+    with_opt = format_run_detail(
+        "A-n32-k5",
+        "OX+Inversion",
+        2,
+        10,
+        last_distance=862.4,
+        best_distance=862.4,
+        optimal_value=784.0,
+    )
+    assert "inst=A-n32-k5" in with_opt
+    assert "OX+Inversion" in with_opt
+    assert "seed 2/10" in with_opt
+    assert "last=862.40" in with_opt
+    assert "best=862.40 (gap=10.00%)" in with_opt
+
+    # Without optimal_value -> omits gap%
+    without_opt = format_run_detail(
+        "Recife-UBS-40-road",
+        "Memetic_GA",
+        1,
+        5,
+        last_distance=45123.5,
+        best_distance=44000.0,
+        optimal_value=None,
+    )
+    assert "inst=Recife-UBS-40-road" in without_opt
+    assert "Memetic_GA" in without_opt
+    assert "seed 1/5" in without_opt
+    assert "last=45123.50" in without_opt
+    assert "best=44000.00" in without_opt
+    assert "gap=" not in without_opt
+
+    # Progress bar renders task and detail to captured Console
+    buf = StringIO()
+    console = Console(file=buf, force_terminal=False, width=160)
+    with create_experiment_progress(console=console, disable=False) as progress:
+        tid = progress.add_task("Phase 1: Ablation", total=2, detail=with_opt)
+        progress.advance(tid, 1)
+    rendered_progress = buf.getvalue()
+    assert "Phase 1: Ablation" in rendered_progress
+    assert "A-n32-k5" in rendered_progress
+
+    # Phase 1 summary table
+    p1_rows = [
+        {
+            "instance": "A-n32-k5",
+            "method": "Pure_GA",
+            "crossover": "OX",
+            "mutation": "Inversion",
+            "seed": 1,
+            "distance": 800.0,
+            "optimal_value": 784.0,
+            "num_vehicles": 5,
+            "runtime_sec": 0.12,
+        },
+        {
+            "instance": "A-n32-k5",
+            "method": "Pure_GA",
+            "crossover": "PMX",
+            "mutation": "Swap",
+            "seed": 1,
+            "distance": 900.0,
+            "optimal_value": 784.0,
+            "num_vehicles": 5,
+            "runtime_sec": 0.15,
+        },
+    ]
+    buf1 = StringIO()
+    c1 = Console(file=buf1, force_terminal=False, width=160)
+    render_phase1_summary(c1, p1_rows, ("OX", "Inversion"))
+    out1 = buf1.getvalue()
+    assert "Phase 1: Operator Ablation Summary" in out1
+    assert "OX+Inversion" in out1
+    assert "PMX+Swap" in out1
+    assert "Selected" in out1
+    assert "800.00" in out1
+
+    # Phase 2 summary table (one with optimal_value, one without)
+    p2_rows = [
+        {
+            "instance": "A-n32-k5",
+            "method": "Memetic_GA",
+            "crossover": "OX",
+            "mutation": "Inversion",
+            "seed": 1,
+            "distance": 784.0,
+            "optimal_value": 784.0,
+            "num_vehicles": 5,
+            "runtime_sec": 0.25,
+        },
+        {
+            "instance": "Recife-UBS-40-road",
+            "method": "Greedy",
+            "crossover": "-",
+            "mutation": "-",
+            "seed": 0,
+            "distance": 50000.0,
+            "optimal_value": None,
+            "num_vehicles": 4,
+            "runtime_sec": 0.01,
+        },
+    ]
+    buf2 = StringIO()
+    c2 = Console(file=buf2, force_terminal=False, width=160)
+    render_phase2_summary(c2, p2_rows)
+    out2 = buf2.getvalue()
+    assert "Phase 2: Benchmark Comparison Summary" in out2
+    assert "A-n32-k5" in out2
+    assert "Memetic_GA" in out2
+    assert "0.00%" in out2
+    assert "Recife-UBS-40-road" in out2
+    assert "Greedy" in out2
+
+
+def test_runner_progress_and_no_progress(tmp_path: Path) -> None:
+    inst_cvrp = load_cvrplib("data/cvrplib/A-n32-k5.vrp")
+    inst_recife = load_recife("data/recife_ubs")
+
+    on_dir = tmp_path / "with_progress"
+    off_dir = tmp_path / "no_progress"
+
+    buf_on = StringIO()
+    console_on = Console(file=buf_on, force_terminal=False, width=160)
+    p1_on = run_phase1_ablation(
+        [inst_cvrp],
+        seeds=[1, 2],
+        pop_size=10,
+        generations=3,
+        output_dir=on_dir,
+        show_progress=True,
+        console=console_on,
+    )
+    p1_out = buf_on.getvalue()
+    assert "Phase 1: Ablation" in p1_out
+    assert "A-n32-k5" in p1_out
+    assert "OX+Inversion" in p1_out
+    assert "seed 2/2" in p1_out
+    assert "Phase 1: Operator Ablation Summary" in p1_out
+
+    buf_off = StringIO()
+    console_off = Console(file=buf_off, force_terminal=False, width=160)
+    p1_off = run_phase1_ablation(
+        [inst_cvrp],
+        seeds=[1, 2],
+        pop_size=10,
+        generations=3,
+        output_dir=off_dir,
+        show_progress=False,
+        console=console_off,
+    )
+    assert buf_off.getvalue() == ""
+    assert len(p1_on) == len(p1_off) == 8
+    assert (on_dir / "phase1_ablation.csv").exists()
+    assert (off_dir / "phase1_ablation.csv").exists()
+    assert (on_dir / "phase1_summary.csv").exists()
+    assert (off_dir / "phase1_summary.csv").exists()
+    assert (on_dir / "phase1_histories.json").read_text(encoding="utf-8") == (
+        off_dir / "phase1_histories.json"
+    ).read_text(encoding="utf-8")
+
+    # Phase 2 with progress enabled vs disabled
+    buf2_on = StringIO()
+    console2_on = Console(file=buf2_on, force_terminal=False, width=160)
+    p2_on, _ = run_phase2_comparison(
+        [inst_cvrp, inst_recife],
+        seeds=[1, 2],
+        crossover="OX",
+        mutation="Inversion",
+        pop_size=10,
+        generations=3,
+        output_dir=on_dir,
+        show_progress=True,
+        console=console2_on,
+    )
+    p2_out = buf2_on.getvalue()
+    assert "Phase 2: Comparison" in p2_out
+    assert "A-n32-k5" in p2_out
+    assert "Recife-UBS-40-road" in p2_out
+    assert "Memetic_GA" in p2_out
+    assert "seed 2/2" in p2_out
+    assert "Phase 2: Benchmark Comparison Summary" in p2_out
+
+    buf2_off = StringIO()
+    console2_off = Console(file=buf2_off, force_terminal=False, width=160)
+    p2_off, _ = run_phase2_comparison(
+        [inst_cvrp, inst_recife],
+        seeds=[1, 2],
+        crossover="OX",
+        mutation="Inversion",
+        pop_size=10,
+        generations=3,
+        output_dir=off_dir,
+        show_progress=False,
+        console=console2_off,
+    )
+    assert buf2_off.getvalue() == ""
+    assert len(p2_on) == len(p2_off) == 10
+    for fname in [
+        "phase2_results.csv",
+        "phase2_summary.csv",
+        "phase2_stats_tests.csv",
+        "phase2_histories.json",
+        "best_solutions.json",
+    ]:
+        assert (on_dir / fname).exists()
+        assert (off_dir / fname).exists()
+    assert (on_dir / "phase2_histories.json").read_text(encoding="utf-8") == (
+        off_dir / "phase2_histories.json"
+    ).read_text(encoding="utf-8")
+
+
+def test_cli_no_progress_flag_and_post_processing_progress(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    parser = build_arg_parser()
+    default_args = parser.parse_args([])
+    assert default_args.no_progress is False
+    disabled_args = parser.parse_args(["--no-progress"])
+    assert disabled_args.no_progress is True
+
+    inst_recife = load_recife("data/recife_ubs")
+    p2_rows, p2_histories = run_phase2_comparison(
+        [inst_recife],
+        seeds=[1],
+        pop_size=10,
+        generations=3,
+        output_dir=tmp_path,
+        show_progress=False,
+    )
+
+    # Avoid network calls during map generation in unit test
+    monkeypatch.setattr(
+        "src.experiments.runner.generate_recife_map",
+        lambda inst, routes, out_path: out_path.write_text("<html></html>", encoding="utf-8")
+        or out_path,
+    )
+
+    buf_on = StringIO()
+    console_on = Console(file=buf_on, force_terminal=False, width=160)
+    run_post_processing(
+        p2_rows,
+        p2_histories,
+        inst_recife,
+        tmp_path,
+        show_progress=True,
+        console=console_on,
+    )
+    out_on = buf_on.getvalue()
+    assert "Post-processing" in out_on
+    assert "Generating Recife HTML map" in out_on
+
+    buf_off = StringIO()
+    console_off = Console(file=buf_off, force_terminal=False, width=160)
+    run_post_processing(
+        p2_rows,
+        p2_histories,
+        inst_recife,
+        tmp_path,
+        show_progress=False,
+        console=console_off,
+    )
+    assert buf_off.getvalue() == ""
+    assert (tmp_path / "recife_map.html").exists()
+
+
+

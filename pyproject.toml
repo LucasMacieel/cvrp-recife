@@ -10,6 +10,7 @@ dependencies = [
     "matplotlib>=3.7",
     "folium>=0.14",
     "requests>=2.31",
+    "rich>=13.0",
 ]
 
 [dependency-groups]
