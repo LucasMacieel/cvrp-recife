@@ -1,7 +1,7 @@
 """Prepare the static Recife/PE UBS & USF CVRP dataset and OSRM road distance matrix.
 
 Usage:
-    python scripts/prepare_recife_data.py
+    uv run python scripts/prepare_recife_data.py
 """
 
 from __future__ import annotations

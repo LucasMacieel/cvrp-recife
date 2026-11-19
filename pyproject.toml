@@ -9,15 +9,16 @@ dependencies = [
     "scipy>=1.10",
     "matplotlib>=3.7",
     "folium>=0.14",
+    "requests>=2.31",
 ]
 
-[project.optional-dependencies]
+[dependency-groups]
 dev = [
     "pytest>=7.4",
 ]
-data = [
-    "requests>=2.31",
-]
+
+[tool.uv]
+package = false
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

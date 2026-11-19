@@ -33,12 +33,10 @@ cvrp-recife/
 
 ## Installation
 
-Requires Python 3.10+.
+Requires Python 3.10+ and [`uv`](https://docs.astral.sh/uv/).
 
 ```bash
-python -m venv .venv
-source .venv/bin/activate
-pip install -r requirements.txt
+uv sync
 ```
 
 ## Input Format & Preprocessing
@@ -55,7 +53,7 @@ Both data sources are normalized into an immutable, validated [`CVRPInstance`](s
 ### 1. Unit tests and smoke tests
 
 ```bash
-pytest
+uv run pytest
 ```
 
 ### 2. Optional Recife/PE dataset preparation (already versioned in `data/recife_ubs/`)
@@ -63,7 +61,7 @@ pytest
 The static dataset consolidates 40 primary care units (**UBS** and **USF** — *Unidades Básicas de Saúde* and *Unidades de Saúde da Família*) from Recife Open Data along with the central depot (`CAF Recife`), estimating unit replenishment demands from municipal pharmacy stockout records (`medicamentos-por-unidade-de-saude.csv`, counting `quantidade = 0` items per unit and min-max scaling into `[10, 40]` for `capacity = 100`).
 
 ```bash
-python scripts/prepare_recife_data.py
+uv run scripts/prepare_recife_data.py
 ```
 
 Optional CLI flags: `--output-dir`, `--d-min`, `--d-max`, `--capacity`, `--stock-csv`. Queries Recife Open Data (unless `--stock-csv` is provided) and the public OSRM API (`router.project-osrm.org`) for driving distances, failing fast with `RuntimeError` if OSRM is unavailable or returns unreachable cells.
@@ -73,7 +71,7 @@ Optional CLI flags: `--output-dir`, `--d-min`, `--d-max`, `--capacity`, `--stock
 Run from the repository root:
 
 ```bash
-python -m src.experiments.runner
+uv run -m src.experiments.runner
 ```
 
 Execution pipeline:
