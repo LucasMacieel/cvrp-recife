@@ -2,9 +2,10 @@
 
 from __future__ import annotations
 
-from io import StringIO
 import json
+from io import StringIO
 from pathlib import Path
+
 import numpy as np
 import pytest
 from rich.console import Console
@@ -76,7 +77,7 @@ def test_stats_gap_and_nonparametric_tests() -> None:
 
     summary = aggregate_results(rows)
     assert len(summary) == 2
-    mem_summary = [s for s in summary if s["method"] == "Memetic_GA"][0]
+    mem_summary = next(s for s in summary if s["method"] == "Memetic_GA")
     assert np.isclose(mem_summary["best_distance"], 79.0)
     assert np.isclose(mem_summary["best_gap_pct"], -1.25)
 
@@ -125,7 +126,9 @@ def test_smoke_experiments_plots_and_recife_map(tmp_path: Path) -> None:
     assert len(conv_paths) == 2 and all(p.exists() for p in conv_paths)
     assert len(box_paths) == 2 and all(p.exists() for p in box_paths)
 
-    best_sols = json.loads((tmp_path / "best_solutions.json").read_text(encoding="utf-8"))
+    best_sols = json.loads(
+        (tmp_path / "best_solutions.json").read_text(encoding="utf-8")
+    )
     recife_routes = best_sols[inst_recife.name]["Memetic_GA"]["routes"]
     map_path = generate_recife_map(
         inst_recife, recife_routes, tmp_path / "recife_map.html", use_osrm=False
@@ -140,7 +143,9 @@ def test_fetch_osrm_route_geometry_converts_lonlat_and_handles_errors(
     import requests as req_lib
 
     class _FakeResponse:
-        def __init__(self, payload: dict, status_error: Exception | None = None) -> None:
+        def __init__(
+            self, payload: dict, status_error: Exception | None = None
+        ) -> None:
             self._payload = payload
             self._status_error = status_error
 
@@ -190,21 +195,27 @@ def test_fetch_osrm_route_geometry_converts_lonlat_and_handles_errors(
         raise req_lib.Timeout("timed out")
 
     monkeypatch.setattr("src.experiments.map_recife.requests.get", _fake_get_timeout)
-    assert _fetch_osrm_route_geometry([[-8.0598, -34.9225], [-8.0500, -34.9100]]) is None
+    assert (
+        _fetch_osrm_route_geometry([[-8.0598, -34.9225], [-8.0500, -34.9100]]) is None
+    )
 
     # Non-Ok status -> None
     def _fake_get_non_ok(url: str, params: dict, timeout: float) -> _FakeResponse:
         return _FakeResponse({"code": "NoRoute", "routes": []})
 
     monkeypatch.setattr("src.experiments.map_recife.requests.get", _fake_get_non_ok)
-    assert _fetch_osrm_route_geometry([[-8.0598, -34.9225], [-8.0500, -34.9100]]) is None
+    assert (
+        _fetch_osrm_route_geometry([[-8.0598, -34.9225], [-8.0500, -34.9100]]) is None
+    )
 
     # HTTP error -> None
     def _fake_get_http_err(url: str, params: dict, timeout: float) -> _FakeResponse:
         return _FakeResponse({}, status_error=req_lib.HTTPError("503"))
 
     monkeypatch.setattr("src.experiments.map_recife.requests.get", _fake_get_http_err)
-    assert _fetch_osrm_route_geometry([[-8.0598, -34.9225], [-8.0500, -34.9100]]) is None
+    assert (
+        _fetch_osrm_route_geometry([[-8.0598, -34.9225], [-8.0500, -34.9100]]) is None
+    )
 
 
 def test_generate_recife_map_osrm_and_fallback(
@@ -223,6 +234,7 @@ def test_generate_recife_map_osrm_and_fallback(
             return None
 
         def json(self) -> dict:
+            assert inst_recife.latlon is not None
             depot_lat, depot_lon = inst_recife.latlon[0]
             stop1_lat, stop1_lon = inst_recife.latlon[1]
             stop2_lat, stop2_lon = inst_recife.latlon[2]
@@ -248,7 +260,9 @@ def test_generate_recife_map_osrm_and_fallback(
         "src.experiments.map_recife.requests.get",
         lambda url, params, timeout: _FakeResp(),
     )
-    osrm_map = generate_recife_map(inst_recife, routes, tmp_path / "osrm.html", use_osrm=True)
+    osrm_map = generate_recife_map(
+        inst_recife, routes, tmp_path / "osrm.html", use_osrm=True
+    )
     osrm_html = osrm_map.read_text(encoding="utf-8")
     assert f"[{intermediate_lat}, {intermediate_lon}]" in osrm_html
 
@@ -523,8 +537,9 @@ def test_cli_no_progress_flag_and_post_processing_progress(
     # Avoid network calls during map generation in unit test
     monkeypatch.setattr(
         "src.experiments.runner.generate_recife_map",
-        lambda inst, routes, out_path: out_path.write_text("<html></html>", encoding="utf-8")
-        or out_path,
+        lambda inst, routes, out_path: (
+            out_path.write_text("<html></html>", encoding="utf-8") or out_path
+        ),
     )
 
     buf_on = StringIO()
@@ -555,4 +570,176 @@ def test_cli_no_progress_flag_and_post_processing_progress(
     assert (tmp_path / "recife_map.html").exists()
 
 
+def test_phase2_with_method_specific_tuned_configs(tmp_path: Path) -> None:
+    from src.solver.genetic import GAConfig
 
+    inst = load_cvrplib("data/cvrplib/A-n32-k5.vrp")
+    pure_cfg = GAConfig(
+        pop_size=12,
+        generations=999,  # overridden by Phase 2 generations=3
+        crossover_rate=0.90,
+        mutation_rate=0.25,
+        tournament_k=3,
+        elite_size=1,
+        crossover="PMX",
+        mutation="Swap",
+        memetic=False,
+    )
+    mem_cfg = GAConfig(
+        pop_size=10,
+        generations=999,
+        crossover_rate=0.80,
+        mutation_rate=0.15,
+        tournament_k=2,
+        elite_size=1,
+        crossover="OX",
+        mutation="Inversion",
+        memetic=True,
+        local_search_rate=0.20,
+        local_search_max_passes=5,
+    )
+
+    rows, _histories = run_phase2_comparison(
+        [inst],
+        seeds=[1, 2],
+        generations=3,
+        pure_ga_config=pure_cfg,
+        memetic_ga_config=mem_cfg,
+        output_dir=tmp_path,
+        show_progress=False,
+    )
+
+    pure_rows = [r for r in rows if r["method"] == "Pure_GA"]
+    mem_rows = [r for r in rows if r["method"] == "Memetic_GA"]
+    assert len(pure_rows) == 2
+    assert len(mem_rows) == 2
+    assert all(r["crossover"] == "PMX" and r["mutation"] == "Swap" for r in pure_rows)
+    assert all(
+        r["crossover"] == "OX" and r["mutation"] == "Inversion" for r in mem_rows
+    )
+
+
+def test_runner_cli_tune_and_tuned_config_flags(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    from src.experiments.runner import main as runner_main
+
+    parser = build_arg_parser()
+    defaults = parser.parse_args([])
+    assert defaults.tuned_config is None
+    assert defaults.tune is False
+    assert defaults.hpo_trials == 25
+    assert defaults.hpo_seeds == 3
+    assert defaults.hpo_generations is None
+    assert defaults.hpo_seed == 42
+
+    # Mutually exclusive flags must fail
+    with pytest.raises(SystemExit):
+        parser.parse_args(["--tune", "--tuned-config", "some.json"])
+
+    # Missing --tuned-config file must fail before Phase 2
+    with pytest.raises(SystemExit):
+        runner_main(["--tuned-config", str(tmp_path / "does_not_exist.json")])
+
+    # Invalid/incomplete --tuned-config file must fail before Phase 2
+    invalid_cfg_path = tmp_path / "invalid_tuned_config.json"
+    invalid_cfg_path.write_text('{"Pure_GA": {"config": {}}}', encoding="utf-8")
+    with pytest.raises(SystemExit):
+        runner_main(["--tuned-config", str(invalid_cfg_path)])
+
+    # Valid --tuned-config skips Phase 1 and passes tuned configs to Phase 2
+    cfg_path = tmp_path / "hpo_best_configs.json"
+    cfg_path.write_text(
+        json.dumps(
+            {
+                "metadata": {
+                    "instances": ["A-n32-k5"],
+                    "seeds": [1],
+                    "n_trials": 1,
+                    "generations": 3,
+                    "hpo_seed": 42,
+                },
+                "Pure_GA": {
+                    "best_objective": 10.0,
+                    "best_trial_number": 0,
+                    "config": {
+                        "pop_size": 12,
+                        "crossover_rate": 0.85,
+                        "mutation_rate": 0.2,
+                        "tournament_k": 3,
+                        "elite_size": 1,
+                        "crossover": "PMX",
+                        "mutation": "Swap",
+                        "memetic": False,
+                    },
+                },
+                "Memetic_GA": {
+                    "best_objective": 2.0,
+                    "best_trial_number": 0,
+                    "config": {
+                        "pop_size": 10,
+                        "crossover_rate": 0.8,
+                        "mutation_rate": 0.15,
+                        "tournament_k": 2,
+                        "elite_size": 1,
+                        "crossover": "OX",
+                        "mutation": "Inversion",
+                        "memetic": True,
+                        "local_search_rate": 0.2,
+                        "local_search_max_passes": 5,
+                    },
+                },
+            }
+        ),
+        encoding="utf-8",
+    )
+
+    inst = load_cvrplib("data/cvrplib/A-n32-k5.vrp")
+    monkeypatch.setattr(
+        "src.experiments.runner.load_cvrplib_suite", lambda _: [inst, inst, inst]
+    )
+    monkeypatch.setattr("src.experiments.runner.load_recife_suite", lambda _: [inst])
+    monkeypatch.setattr(
+        "src.experiments.runner.run_post_processing", lambda *a, **kw: None
+    )
+
+    out_tuned = tmp_path / "out_tuned"
+    runner_main(
+        [
+            "--tuned-config",
+            str(cfg_path),
+            "--phase2-seeds",
+            "1",
+            "--generations",
+            "2",
+            "--output-dir",
+            str(out_tuned),
+            "--no-progress",
+        ]
+    )
+    assert not (out_tuned / "phase1_ablation.csv").exists()
+    assert (out_tuned / "phase2_results.csv").is_file()
+
+    # --tune runs inline HPO, skips Phase 1, and writes both HPO and Phase 2 artifacts
+    out_inline = tmp_path / "out_inline"
+    runner_main(
+        [
+            "--tune",
+            "--hpo-trials",
+            "1",
+            "--hpo-seeds",
+            "1",
+            "--hpo-generations",
+            "2",
+            "--phase2-seeds",
+            "1",
+            "--generations",
+            "2",
+            "--output-dir",
+            str(out_inline),
+            "--no-progress",
+        ]
+    )
+    assert not (out_inline / "phase1_ablation.csv").exists()
+    assert (out_inline / "hpo_best_configs.json").is_file()
+    assert (out_inline / "phase2_results.csv").is_file()

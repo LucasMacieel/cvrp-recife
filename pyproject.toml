@@ -11,6 +11,7 @@ dependencies = [
     "folium>=0.14",
     "requests>=2.31",
     "rich>=13.0",
+    "optuna>=3.6",
 ]
 
 [dependency-groups]

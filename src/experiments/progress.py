@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from collections import defaultdict
+
 import numpy as np
 from rich.console import Console
 from rich.progress import (
@@ -154,3 +155,62 @@ def render_phase1_summary(
 def render_phase2_summary(console: Console, phase2_rows: list[dict]) -> None:
     """Print the Phase 2 summary table to the provided console."""
     console.print(build_phase2_summary_table(phase2_rows))
+
+
+def format_hpo_detail(
+    method_name: str,
+    trial_num: int,
+    total_trials: int,
+    *,
+    last_objective: float | None = None,
+    best_objective: float | None = None,
+) -> str:
+    """Format live per-trial telemetry string for HPO progress bar."""
+    parts = [method_name, f"trial {trial_num}/{total_trials}"]
+    if last_objective is not None:
+        parts.append(f"last={last_objective:.2f}%")
+    if best_objective is not None:
+        parts.append(f"best={best_objective:.2f}%")
+    return " | ".join(parts)
+
+
+def build_hpo_summary_table(results: dict) -> Table:
+    """Build a Rich summary table for HPO best configurations."""
+    table = Table(title="Hyperparameter Optimization Summary")
+    table.add_column("Method", style="cyan", no_wrap=True)
+    table.add_column("Best Trial", justify="right")
+    table.add_column("Best Obj (%)", justify="right")
+    table.add_column("Operators", style="magenta", no_wrap=True)
+    table.add_column("Pop", justify="right")
+    table.add_column("CX Rate", justify="right")
+    table.add_column("Mut Rate", justify="right")
+    table.add_column("k / Elite", justify="center")
+    table.add_column("LS Rate / Passes", justify="center")
+
+    for method in ("Pure_GA", "Memetic_GA"):
+        entry = results.get(method)
+        if not entry:
+            continue
+        cfg = entry["config"]
+        ls_str = (
+            f"{cfg['local_search_rate']:.2f} / {cfg['local_search_max_passes']}"
+            if cfg.get("memetic")
+            else "-"
+        )
+        table.add_row(
+            method,
+            str(entry["best_trial_number"]),
+            f"{float(entry['best_objective']):.2f}%",
+            f"{cfg['crossover']}+{cfg['mutation']}",
+            str(cfg["pop_size"]),
+            f"{float(cfg['crossover_rate']):.2f}",
+            f"{float(cfg['mutation_rate']):.2f}",
+            f"{cfg['tournament_k']} / {cfg['elite_size']}",
+            ls_str,
+        )
+    return table
+
+
+def render_hpo_summary(console: Console, results: dict) -> None:
+    """Print the HPO summary table to the provided console."""
+    console.print(build_hpo_summary_table(results))

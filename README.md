@@ -24,6 +24,8 @@ cvrp-recife/
 │   │   └── genetic.py          # Pure GA and Lamarckian Memetic GA
 │   └── experiments/
 │       ├── runner.py           # Runner for Phase 1 (ablation) and Phase 2 (30-seed comparison)
+│       ├── hpo.py              # Optuna TPE hyperparameter optimization for Pure GA and Memetic GA
+│       ├── progress.py         # Rich progress bars and summary tables for experiments and HPO
 │       ├── stats.py            # Aggregation, gap %, and Wilcoxon / Mann-Whitney tests
 │       ├── plots.py            # Convergence curves and comparative boxplots (.png)
 │       └── map_recife.py       # Interactive Folium map of routes in Recife (.html)
@@ -79,7 +81,28 @@ Execution pipeline:
 2. **Phase 2 (Comparison & Stats):** Runs across all 5 instances (`A-n32-k5`, `A-n45-k6`, `A-n60-k9`, `A-n80-k10`, `Recife-UBS-40-road`), comparing the deterministic `Greedy` baseline (`seed=0`) against `Pure_GA` and `Memetic_GA` for `--phase2-seeds` runs (default `30`) using the Phase 1 winning operators. Statistical comparison (`phase2_stats_tests.csv`) runs two-sided Wilcoxon signed-rank (paired by seed) and Mann-Whitney U tests between `Pure_GA` and `Memetic_GA` (`significant_005` when `wilcoxon_p < 0.05`).
 3. **Charts & Map:** Generates convergence curves, comparative boxplots, and the interactive Folium map (`recife_map.html`) from the best `Memetic_GA` routes on `Recife-UBS-40-road` (querying OSRM for road-snapped polylines with straight-line fallback if offline).
 
-Optional CLI parameters: `--phase1-seeds` (`10`), `--phase2-seeds` (`30`), `--pop-size` (`60`), `--generations` (`150`), `--ls-rate` (`0.30`), `--output-dir` (`results`). Fixed [`GAConfig`](src/solver/genetic.py) defaults: `crossover_rate=0.85`, `mutation_rate=0.20`, `tournament_k=3`, `elite_size=2`, `local_search_max_passes=15`.
+Optional CLI parameters: `--phase1-seeds` (`10`), `--phase2-seeds` (`30`), `--pop-size` (`60`), `--generations` (`150`), `--ls-rate` (`0.30`), `--output-dir` (`results`), `--no-progress`. Fixed [`GAConfig`](src/solver/genetic.py) defaults: `crossover_rate=0.85`, `mutation_rate=0.20`, `tournament_k=3`, `elite_size=2`, `local_search_max_passes=15`.
+
+#### Hyperparameter Optimization (Optuna TPE)
+
+You can tune `Pure_GA` and `Memetic_GA` independently with Optuna's TPE sampler (`src/experiments/hpo.py`) on the representative subset (`A-n32-k5`, `A-n60-k9`):
+
+```bash
+uv run -m src.experiments.hpo --help
+uv run -m src.experiments.hpo --trials 30 --seeds 3 --generations 100
+```
+
+This exports `results/hpo_best_configs.json`, `results/hpo_trials_pure_ga.csv`, and `results/hpo_trials_memetic_ga.csv`. Use `--method pure|memetic|both` to tune a single solver, `--instances` to customize tuning instances, or `--no-progress` to suppress Rich output.
+
+To run Phase 2 benchmarking with tuned per-method hyperparameters (skipping Phase 1 ablation):
+
+```bash
+uv run -m src.experiments.runner --help
+# Option A: Load pre-computed HPO configs
+uv run -m src.experiments.runner --tuned-config results/hpo_best_configs.json
+# Option B: Run HPO inline before Phase 2
+uv run -m src.experiments.runner --tune --hpo-trials 25 --hpo-seeds 3
+```
 
 Results are saved in `results/`:
 - `phase1_ablation.csv`, `phase1_summary.csv`, `phase1_histories.json`

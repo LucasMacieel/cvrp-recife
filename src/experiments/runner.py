@@ -4,13 +4,21 @@ from __future__ import annotations
 
 import argparse
 import json
+from dataclasses import replace
 from pathlib import Path
+
 import numpy as np
 from rich.console import Console
 
 from src.data.cvrplib_loader import load_cvrplib
 from src.data.models import CVRPInstance
 from src.data.recife_loader import load_recife
+from src.experiments.hpo import (
+    METHOD_MEMETIC,
+    METHOD_PURE,
+    load_tuned_configs,
+    run_hpo_suite,
+)
 from src.experiments.map_recife import generate_recife_map
 from src.experiments.plots import plot_comparative_boxplots, plot_convergence_curves
 from src.experiments.progress import (
@@ -162,9 +170,7 @@ def run_phase1_ablation(
 
     save_csv(rows, out / "phase1_ablation.csv")
     save_csv(aggregate_results(rows), out / "phase1_summary.csv")
-    (out / "phase1_histories.json").write_text(
-        json.dumps(histories), encoding="utf-8"
-    )
+    (out / "phase1_histories.json").write_text(json.dumps(histories), encoding="utf-8")
     if show_progress and rows:
         render_phase1_summary(active_console, rows, select_best_operators(rows))
     return rows
@@ -190,6 +196,8 @@ def run_phase2_comparison(
     pop_size: int = 60,
     generations: int = 150,
     local_search_rate: float = 0.30,
+    pure_ga_config: GAConfig | None = None,
+    memetic_ga_config: GAConfig | None = None,
     output_dir: str | Path = "results",
     show_progress: bool = True,
     console: Console | None = None,
@@ -257,10 +265,28 @@ def run_phase2_comparison(
                 ),
             )
 
-            for method_name, is_memetic in [("Pure_GA", False), ("Memetic_GA", True)]:
+            method_configs = [
+                ("Pure_GA", False, pure_ga_config),
+                ("Memetic_GA", True, memetic_ga_config),
+            ]
+            for method_name, is_memetic, override_cfg in method_configs:
+                base_cfg = (
+                    replace(override_cfg, generations=generations, memetic=is_memetic)
+                    if override_cfg is not None
+                    else GAConfig(
+                        pop_size=pop_size,
+                        generations=generations,
+                        crossover=crossover,
+                        mutation=mutation,
+                        memetic=is_memetic,
+                        local_search_rate=local_search_rate,
+                    )
+                )
                 best_dist = float("inf")
                 best_res = None
-                method_label = f"{method_name} ({crossover}+{mutation})"
+                method_label = (
+                    f"{method_name} ({base_cfg.crossover}+{base_cfg.mutation})"
+                )
                 for seed_idx, seed in enumerate(seeds, start=1):
                     current_best = best_dist if best_dist < float("inf") else None
                     progress.update(
@@ -274,22 +300,14 @@ def run_phase2_comparison(
                             optimal_value=inst.optimal_value,
                         ),
                     )
-                    cfg = GAConfig(
-                        pop_size=pop_size,
-                        generations=generations,
-                        crossover=crossover,
-                        mutation=mutation,
-                        memetic=is_memetic,
-                        local_search_rate=local_search_rate,
-                        seed=seed,
-                    )
+                    cfg = replace(base_cfg, seed=seed)
                     res = solve_genetic(inst, cfg)
                     rows.append(
                         _make_row(
                             inst,
                             method_name,
-                            crossover,
-                            mutation,
+                            cfg.crossover,
+                            cfg.mutation,
                             seed,
                             res.distance,
                             res.num_vehicles,
@@ -325,9 +343,7 @@ def run_phase2_comparison(
     save_csv(rows, out / "phase2_results.csv")
     save_csv(aggregate_results(rows), out / "phase2_summary.csv")
     save_csv(compare_pure_vs_memetic(rows), out / "phase2_stats_tests.csv")
-    (out / "phase2_histories.json").write_text(
-        json.dumps(histories), encoding="utf-8"
-    )
+    (out / "phase2_histories.json").write_text(json.dumps(histories), encoding="utf-8")
     (out / "best_solutions.json").write_text(
         json.dumps(best_solutions, indent=2), encoding="utf-8"
     )
@@ -350,6 +366,42 @@ def build_arg_parser() -> argparse.ArgumentParser:
         action="store_true",
         help="Disable live rich progress bars and phase summary tables.",
     )
+    tune_group = parser.add_mutually_exclusive_group()
+    tune_group.add_argument(
+        "--tuned-config",
+        type=str,
+        default=None,
+        help="Path to hpo_best_configs.json; skips Phase 1 and uses tuned configs in Phase 2.",
+    )
+    tune_group.add_argument(
+        "--tune",
+        action="store_true",
+        help="Run Optuna HPO before Phase 2 instead of Phase 1 ablation.",
+    )
+    parser.add_argument(
+        "--hpo-trials",
+        type=int,
+        default=25,
+        help="Number of Optuna trials per method when --tune is set.",
+    )
+    parser.add_argument(
+        "--hpo-seeds",
+        type=int,
+        default=3,
+        help="Number of evaluation seeds per HPO trial when --tune is set.",
+    )
+    parser.add_argument(
+        "--hpo-generations",
+        type=int,
+        default=None,
+        help="Generation budget per HPO evaluation (defaults to --generations).",
+    )
+    parser.add_argument(
+        "--hpo-seed",
+        type=int,
+        default=42,
+        help="Master seed for Optuna TPESampler when --tune is set.",
+    )
     return parser
 
 
@@ -364,12 +416,20 @@ def run_post_processing(
 ) -> None:
     """Generate convergence plots, comparative boxplots, and Recife HTML map."""
     active_console = console or Console()
-    best_sols = json.loads((out_dir / "best_solutions.json").read_text(encoding="utf-8"))
+    best_sols = json.loads(
+        (out_dir / "best_solutions.json").read_text(encoding="utf-8")
+    )
     recife_routes = best_sols[recife_road.name]["Memetic_GA"]["routes"]
 
     steps = [
-        ("Plotting convergence curves", lambda: plot_convergence_curves(p2_histories, out_dir)),
-        ("Plotting comparative boxplots", lambda: plot_comparative_boxplots(p2_rows, out_dir)),
+        (
+            "Plotting convergence curves",
+            lambda: plot_convergence_curves(p2_histories, out_dir),
+        ),
+        (
+            "Plotting comparative boxplots",
+            lambda: plot_comparative_boxplots(p2_rows, out_dir),
+        ),
         (
             "Generating Recife HTML map",
             lambda: generate_recife_map(
@@ -391,27 +451,74 @@ def run_post_processing(
 
 
 def main(argv: list[str] | None = None) -> None:
-    args = build_arg_parser().parse_args(argv)
+    parser = build_arg_parser()
+    args = parser.parse_args(argv)
     show_progress = not args.no_progress
     console = Console()
+
+    pure_tuned_cfg: GAConfig | None = None
+    memetic_tuned_cfg: GAConfig | None = None
+
+    if args.tuned_config is not None:
+        try:
+            tuned = load_tuned_configs(args.tuned_config, require_both=True)
+        except (FileNotFoundError, ValueError, TypeError) as exc:
+            parser.error(str(exc))
+        pure_tuned_cfg = tuned[METHOD_PURE]
+        memetic_tuned_cfg = tuned[METHOD_MEMETIC]
+        console.print(
+            f"Loaded tuned configs from {args.tuned_config} "
+            f"(Pure_GA: {pure_tuned_cfg.crossover}+{pure_tuned_cfg.mutation}, "
+            f"Memetic_GA: {memetic_tuned_cfg.crossover}+{memetic_tuned_cfg.mutation}); "
+            "skipping Phase 1 ablation."
+        )
 
     cvrplib_instances = load_cvrplib_suite("data/cvrplib")
     recife_instances = load_recife_suite("data/recife_ubs")
 
-    # Phase 1 on 2 representative CVRPLIB instances (A-n32-k5, A-n60-k9)
+    # Tuning / Phase 1 representative subset (A-n32-k5, A-n60-k9)
     p1_instances = [cvrplib_instances[0], cvrplib_instances[2]]
-    p1_seeds = list(range(1, args.phase1_seeds + 1))
-    p1_rows = run_phase1_ablation(
-        p1_instances,
-        p1_seeds,
-        pop_size=args.pop_size,
-        generations=args.generations,
-        output_dir=args.output_dir,
-        show_progress=show_progress,
-        console=console,
-    )
-    best_cx, best_mut = select_best_operators(p1_rows)
-    console.print(f"Phase 1 selected operators: crossover={best_cx}, mutation={best_mut}")
+
+    if args.tune:
+        hpo_gens = (
+            args.hpo_generations
+            if args.hpo_generations is not None
+            else args.generations
+        )
+        hpo_seeds = list(range(1, args.hpo_seeds + 1))
+        run_hpo_suite(
+            p1_instances,
+            hpo_seeds,
+            n_trials=args.hpo_trials,
+            generations=hpo_gens,
+            hpo_seed=args.hpo_seed,
+            output_dir=args.output_dir,
+            show_progress=show_progress,
+            console=console,
+        )
+        tuned = load_tuned_configs(
+            Path(args.output_dir) / "hpo_best_configs.json", require_both=True
+        )
+        pure_tuned_cfg = tuned[METHOD_PURE]
+        memetic_tuned_cfg = tuned[METHOD_MEMETIC]
+        best_cx, best_mut = pure_tuned_cfg.crossover, pure_tuned_cfg.mutation
+    elif pure_tuned_cfg is not None and memetic_tuned_cfg is not None:
+        best_cx, best_mut = pure_tuned_cfg.crossover, pure_tuned_cfg.mutation
+    else:
+        p1_seeds = list(range(1, args.phase1_seeds + 1))
+        p1_rows = run_phase1_ablation(
+            p1_instances,
+            p1_seeds,
+            pop_size=args.pop_size,
+            generations=args.generations,
+            output_dir=args.output_dir,
+            show_progress=show_progress,
+            console=console,
+        )
+        best_cx, best_mut = select_best_operators(p1_rows)
+        console.print(
+            f"Phase 1 selected operators: crossover={best_cx}, mutation={best_mut}"
+        )
 
     # Phase 2 on all 4 CVRPLIB + Recife road-network instance
     p2_instances = cvrplib_instances + recife_instances
@@ -424,6 +531,8 @@ def main(argv: list[str] | None = None) -> None:
         pop_size=args.pop_size,
         generations=args.generations,
         local_search_rate=args.ls_rate,
+        pure_ga_config=pure_tuned_cfg,
+        memetic_ga_config=memetic_tuned_cfg,
         output_dir=args.output_dir,
         show_progress=show_progress,
         console=console,

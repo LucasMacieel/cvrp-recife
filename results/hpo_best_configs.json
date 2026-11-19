@@ -1,0 +1,46 @@
+{
+  "metadata": {
+    "instances": [
+      "A-n32-k5",
+      "A-n60-k9"
+    ],
+    "seeds": [
+      1,
+      2,
+      3
+    ],
+    "n_trials": 25,
+    "generations": 150,
+    "hpo_seed": 42
+  },
+  "Pure_GA": {
+    "best_objective": 19.781037,
+    "best_trial_number": 11,
+    "config": {
+      "pop_size": 110,
+      "crossover_rate": 0.702939,
+      "mutation_rate": 0.461028,
+      "tournament_k": 5,
+      "elite_size": 2,
+      "crossover": "OX",
+      "mutation": "Inversion",
+      "memetic": false
+    }
+  },
+  "Memetic_GA": {
+    "best_objective": 7.325245,
+    "best_trial_number": 17,
+    "config": {
+      "pop_size": 110,
+      "crossover_rate": 0.822308,
+      "mutation_rate": 0.437928,
+      "tournament_k": 3,
+      "elite_size": 6,
+      "crossover": "PMX",
+      "mutation": "Inversion",
+      "memetic": true,
+      "local_search_rate": 0.518094,
+      "local_search_max_passes": 25
+    }
+  }
+}
