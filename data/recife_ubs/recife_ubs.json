@@ -13,9 +13,9 @@
     "raw_min": 82,
     "raw_max": 212,
     "match_summary": {
-      "us_code": 35,
+      "us_code": 34,
       "name_bairro": 0,
-      "type_median_fallback": 5,
+      "type_median_fallback": 6,
       "global_median_fallback": 0
     }
   },
@@ -342,19 +342,19 @@
       "raw_stockouts": null,
       "total_items": null,
       "demand_match_method": "type_median_fallback",
-      "imputed_stockouts": 99.5
+      "imputed_stockouts": 99.0
     },
     {
-      "id": "USF-9999999",
-      "name": "us 121 psf prof bruno maia",
+      "id": "USF-0001244",
+      "name": "us 175 psf dr diogenes cavalcanti",
       "type": "USF",
       "rpa": "3",
       "bairro": "nova descoberta",
-      "lat": -8.00138177008,
-      "lon": -34.9248708874,
-      "demand": 19,
-      "raw_stockouts": 119,
-      "total_items": 243,
+      "lat": -8.00132259812,
+      "lon": -34.9354796789,
+      "demand": 13,
+      "raw_stockouts": 97,
+      "total_items": 217,
       "demand_match_method": "us_code"
     },
     {
@@ -384,16 +384,16 @@
       "demand_match_method": "us_code"
     },
     {
-      "id": "USF-9999999",
-      "name": "us 137 psf borborema dr djair brindeiro",
+      "id": "USF-0002062",
+      "name": "us 172 psf três carneiros",
       "type": "USF",
       "rpa": "6",
-      "bairro": "boa viagem",
-      "lat": -8.14813320109,
-      "lon": -34.9135759982,
-      "demand": 13,
-      "raw_stockouts": 97,
-      "total_items": 211,
+      "bairro": "cohab",
+      "lat": -8.12535688953,
+      "lon": -34.9582189795,
+      "demand": 15,
+      "raw_stockouts": 103,
+      "total_items": 214,
       "demand_match_method": "us_code"
     },
     {
@@ -410,29 +410,30 @@
       "demand_match_method": "us_code"
     },
     {
-      "id": "USF-9999999",
-      "name": "us 155 psf professor monteiro de morais",
+      "id": "USF-0001503",
+      "name": "us 179 psf alto do céu",
       "type": "USF",
       "rpa": "2",
-      "bairro": "beberibe",
-      "lat": -8.00409891123,
-      "lon": -34.8969181401,
-      "demand": 23,
-      "raw_stockouts": 139,
-      "total_items": 234,
-      "demand_match_method": "us_code"
+      "bairro": "porto da madeira",
+      "lat": -8.00969165338,
+      "lon": -34.8915349122,
+      "demand": 14,
+      "raw_stockouts": null,
+      "total_items": null,
+      "demand_match_method": "type_median_fallback",
+      "imputed_stockouts": 99.0
     },
     {
-      "id": "USF-0001244",
-      "name": "us 175 psf dr diogenes cavalcanti",
+      "id": "USF-0020567",
+      "name": "us 182 psf poço da panela",
       "type": "USF",
       "rpa": "3",
-      "bairro": "nova descoberta",
-      "lat": -8.00132259812,
-      "lon": -34.9354796789,
-      "demand": 13,
-      "raw_stockouts": 97,
-      "total_items": 217,
+      "bairro": "poco da panela",
+      "lat": -8.03756229783,
+      "lon": -34.9248941427,
+      "demand": 10,
+      "raw_stockouts": 82,
+      "total_items": 207,
       "demand_match_method": "us_code"
     },
     {
@@ -447,7 +448,7 @@
       "raw_stockouts": null,
       "total_items": null,
       "demand_match_method": "type_median_fallback",
-      "imputed_stockouts": 99.5
+      "imputed_stockouts": 99.0
     },
     {
       "id": "USF-0001112",
@@ -463,16 +464,16 @@
       "demand_match_method": "us_code"
     },
     {
-      "id": "USF-0002062",
-      "name": "us 172 psf três carneiros",
+      "id": "USF-0002070",
+      "name": "us 173 psf dancing days",
       "type": "USF",
       "rpa": "6",
-      "bairro": "cohab",
-      "lat": -8.12535688953,
-      "lon": -34.9582189795,
-      "demand": 15,
-      "raw_stockouts": 103,
-      "total_items": 214,
+      "bairro": "imbiribeira",
+      "lat": -8.10369000417,
+      "lon": -34.9216864536,
+      "demand": 14,
+      "raw_stockouts": 100,
+      "total_items": 208,
       "demand_match_method": "us_code"
     },
     {
@@ -489,30 +490,30 @@
       "demand_match_method": "us_code"
     },
     {
-      "id": "USF-0001503",
-      "name": "us 179 psf alto do céu",
+      "id": "USF-0002135",
+      "name": "us 221 psf ilha de joaneiro",
       "type": "USF",
       "rpa": "2",
-      "bairro": "porto da madeira",
-      "lat": -8.00969165338,
-      "lon": -34.8915349122,
+      "bairro": "campo grande",
+      "lat": -8.0355987806,
+      "lon": -34.8827653151,
       "demand": 14,
       "raw_stockouts": null,
       "total_items": null,
       "demand_match_method": "type_median_fallback",
-      "imputed_stockouts": 99.5
+      "imputed_stockouts": 99.0
     },
     {
-      "id": "USF-0020567",
-      "name": "us 182 psf poço da panela",
+      "id": "USF-0002097",
+      "name": "us 183 psf sítio dos macacos",
       "type": "USF",
       "rpa": "3",
-      "bairro": "poco da panela",
-      "lat": -8.03756229783,
-      "lon": -34.9248941427,
-      "demand": 10,
-      "raw_stockouts": 82,
-      "total_items": 207,
+      "bairro": "guabiraba",
+      "lat": -7.99555736387,
+      "lon": -34.9545086466,
+      "demand": 12,
+      "raw_stockouts": 90,
+      "total_items": 215,
       "demand_match_method": "us_code"
     },
     {
@@ -527,7 +528,7 @@
       "raw_stockouts": null,
       "total_items": null,
       "demand_match_method": "type_median_fallback",
-      "imputed_stockouts": 99.5
+      "imputed_stockouts": 99.0
     },
     {
       "id": "USF-0022403",
@@ -543,89 +544,87 @@
       "demand_match_method": "us_code"
     },
     {
-      "id": "USF-0002070",
-      "name": "us 173 psf dancing days",
+      "id": "USF-0000957",
+      "name": "us 174 psf sítio grande",
       "type": "USF",
       "rpa": "6",
       "bairro": "imbiribeira",
-      "lat": -8.10369000417,
-      "lon": -34.9216864536,
+      "lat": -8.10219534713,
+      "lon": -34.9125819713,
       "demand": 14,
-      "raw_stockouts": 100,
-      "total_items": 208,
+      "raw_stockouts": 101,
+      "total_items": 210,
       "demand_match_method": "us_code"
     }
   ],
-  "optimal_value": 171.9398,
+  "optimal_value": 173.6154,
   "exact_solution": {
     "status": "optimal",
     "solver": "OR-Tools CP-SAT (AddMultipleCircuit)",
     "solver_version": "9.15.6755",
-    "distance": 171.9398,
-    "solver_objective": 171.9398,
-    "dual_lower_bound": 171.9398,
+    "distance": 173.6154,
+    "solver_objective": 173.6154,
+    "dual_lower_bound": 173.6154,
     "gap_pct": 0.0,
-    "num_vehicles": 8,
+    "num_vehicles": 7,
     "routes": [
       [
-        8,
-        5,
-        3,
-        4,
-        37
-      ],
-      [
         9,
-        38,
-        10
-      ],
-      [
-        11,
-        31,
-        25,
-        6,
-        7,
-        26
-      ],
-      [
-        14,
-        33,
-        27,
-        39
-      ],
-      [
         15,
-        17,
-        34,
-        18,
-        12,
+        14,
         13
       ],
       [
-        16,
-        32,
-        23,
-        35
+        11,
+        37,
+        25,
+        6,
+        5,
+        7,
+        4
       ],
       [
-        19,
-        22,
-        21,
-        28,
-        20,
+        12,
+        33,
+        27,
+        39,
+        34,
         40
       ],
       [
+        17,
+        28,
+        18,
+        21,
+        22,
+        20
+      ],
+      [
+        31,
+        3,
         24,
         2,
-        30,
-        36,
+        30
+      ],
+      [
+        32,
+        23,
+        19,
+        35,
+        1,
         29,
-        1
+        36
+      ],
+      [
+        38,
+        8,
+        26,
+        10,
+        16
       ]
     ],
-    "runtime_seconds": 57.2611,
-    "distance_matrix_sha256": "98e6394a5095a749c8b23d7935c51369b9eab294b200e3363177b44c2b00ee17",
-    "solved_at_utc": "2026-11-20T02:19:12.816622+00:00"
+    "runtime_seconds": 86.8972,
+    "distance_matrix_sha256": "7bbab6622eb34af433c56d1f48d3109eabfc3b5ca240cf2d61a1e01997e113f8",
+    "solved_at_utc": "2026-11-20T16:00:17.492024+00:00"
   }
 }

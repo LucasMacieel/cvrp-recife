@@ -375,11 +375,23 @@ def assign_empirical_demands(
     }
 
 
-def _collect_recife_nodes(target_customers: int = 40) -> list[dict]:
-    ubs_rows = _fetch_csv_rows(UBS_CSV_URL)
-    usf_rows = _fetch_csv_rows(USF_CSV_URL)
+def _is_placeholder_cnes(cnes: str) -> bool:
+    """Return True when CNES is empty or consists solely of placeholder digits ('0' or '9')."""
+    cleaned = (cnes or "").strip()
+    return not cleaned or all(ch in {"0", "9"} for ch in cleaned)
 
+
+def select_recife_nodes(
+    ubs_rows: Iterable[dict[str, str]],
+    usf_rows: Iterable[dict[str, str]],
+    target_customers: int = 40,
+) -> list[dict]:
+    """Select and deduplicate Recife UBS/USF customer nodes up to target_customers."""
+    seen_us_codes: set[str] = set()
+    seen_cnes: set[str] = set()
+    seen_name_bairro: set[tuple[str, str]] = set()
     seen_coords: set[tuple[float, float]] = set()
+    seen_ids: set[str] = {str(DEPOT_NODE["id"])}
     selected: list[dict] = []
 
     def try_add(row: dict[str, str], unit_type: str) -> bool:
@@ -389,18 +401,54 @@ def _collect_recife_nodes(target_customers: int = 40) -> list[dict]:
             return False
         if not (-8.20 <= lat <= -7.90 and -35.05 <= lon <= -34.80):
             return False
-        key = (round(lat, 5), round(lon, 5))
-        if key in seen_coords:
+
+        name = (row.get("nome_oficial") or "").strip()
+        bairro = (row.get("bairro") or "").strip()
+        cnes = (row.get("cnes") or "").strip()
+        us_code = extract_us_code(name)
+        coord_key = (round(lat, 5), round(lon, 5))
+        norm_name = normalize_text(name, strip_prefix_tokens=True)
+        norm_bairro = normalize_text(bairro)
+        name_bairro_key = (norm_name, norm_bairro) if norm_name else None
+
+        if us_code is not None and us_code in seen_us_codes:
             return False
-        seen_coords.add(key)
-        cnes = (row.get("cnes") or f"{len(selected):04d}").strip()
+        if not _is_placeholder_cnes(cnes) and cnes in seen_cnes:
+            return False
+        if name_bairro_key is not None and name_bairro_key in seen_name_bairro:
+            return False
+        if coord_key in seen_coords:
+            return False
+
+        if not _is_placeholder_cnes(cnes):
+            base_id = f"{unit_type}-{cnes}"
+        elif us_code is not None:
+            base_id = f"{unit_type}-US{us_code.split()[1]}"
+        else:
+            base_id = f"{unit_type}-{len(selected) + 1:04d}"
+
+        node_id = base_id
+        suffix = 2
+        while node_id in seen_ids:
+            node_id = f"{base_id}-{suffix}"
+            suffix += 1
+
+        seen_coords.add(coord_key)
+        seen_ids.add(node_id)
+        if us_code is not None:
+            seen_us_codes.add(us_code)
+        if not _is_placeholder_cnes(cnes):
+            seen_cnes.add(cnes)
+        if name_bairro_key is not None:
+            seen_name_bairro.add(name_bairro_key)
+
         selected.append(
             {
-                "id": f"{unit_type}-{cnes}",
-                "name": row.get("nome_oficial", "").strip() or f"{unit_type} {cnes}",
+                "id": node_id,
+                "name": name or f"{unit_type} {cnes or len(selected) + 1}",
                 "type": unit_type,
                 "rpa": (row.get("rpa") or "").strip(),
-                "bairro": (row.get("bairro") or "").strip(),
+                "bairro": bairro,
                 "lat": lat,
                 "lon": lon,
                 "demand": 0,
@@ -434,7 +482,28 @@ def _collect_recife_nodes(target_customers: int = 40) -> list[dict]:
         if not progressed:
             break
 
-    return [dict(DEPOT_NODE)] + selected
+    nodes = [dict(DEPOT_NODE)] + selected
+    node_ids = [n["id"] for n in nodes]
+    if len(node_ids) != len(set(node_ids)):
+        raise ValueError("Duplicate node IDs generated during node selection.")
+    us_codes = [
+        code
+        for n in selected
+        if (code := extract_us_code(n.get("name", ""))) is not None
+    ]
+    if len(us_codes) != len(set(us_codes)):
+        raise ValueError("Duplicate canonical US codes selected during node selection.")
+    if len(selected) != target_customers:
+        raise ValueError(
+            f"Expected {target_customers} unique customer health units, got {len(selected)}."
+        )
+    return nodes
+
+
+def _collect_recife_nodes(target_customers: int = 40) -> list[dict]:
+    ubs_rows = _fetch_csv_rows(UBS_CSV_URL)
+    usf_rows = _fetch_csv_rows(USF_CSV_URL)
+    return select_recife_nodes(ubs_rows, usf_rows, target_customers=target_customers)
 
 
 def _fetch_osrm_matrix(latlon: np.ndarray) -> np.ndarray:

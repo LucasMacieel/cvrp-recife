@@ -33,6 +33,18 @@ def load_recife(
 
     payload = json.loads(json_path.read_text(encoding="utf-8"))
     nodes = payload["nodes"]
+    seen_ids: set[str] = set()
+    duplicate_ids: list[str] = []
+    for node in nodes:
+        if "id" in node and node["id"] is not None:
+            node_id = str(node["id"])
+            if node_id in seen_ids and node_id not in duplicate_ids:
+                duplicate_ids.append(node_id)
+            seen_ids.add(node_id)
+    if duplicate_ids:
+        raise ValueError(
+            f"Duplicate node id(s) found in {json_path}: {', '.join(duplicate_ids)}"
+        )
     latlon = np.array([[n["lat"], n["lon"]] for n in nodes], dtype=np.float64)
     demands = np.array([int(n["demand"]) for n in nodes], dtype=np.int64)
     node_names = [str(n["name"]) for n in nodes]

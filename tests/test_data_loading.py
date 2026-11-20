@@ -161,6 +161,9 @@ def test_load_cvrplib_comment_optimal_vs_best_value(
 
 
 def test_load_recife_road_only() -> None:
+    import json
+    from scripts.prepare_recife_data import extract_us_code
+
     road = load_recife("data/recife_ubs")
 
     assert road.name == "Recife-UBS-40-road"
@@ -171,7 +174,21 @@ def test_load_recife_road_only() -> None:
     assert road.is_symmetric is False
     assert road.latlon is not None and road.latlon.shape == (41, 2)
     assert road.node_names is not None and len(road.node_names) == 41
-    assert road.optimal_value == pytest.approx(171.9398)
+    assert road.optimal_value == pytest.approx(173.6154)
+
+    payload = json.loads(
+        Path("data/recife_ubs/recife_ubs.json").read_text(encoding="utf-8")
+    )
+    nodes = payload["nodes"]
+    node_ids = [n["id"] for n in nodes]
+    assert len(node_ids) == 41
+    assert len(set(node_ids)) == 41
+    us_codes = [
+        code
+        for n in nodes[1:]
+        if (code := extract_us_code(n.get("name", ""))) is not None
+    ]
+    assert len(us_codes) == len(set(us_codes))
 
 
 def test_load_recife_missing_road_matrix_raises(tmp_path: Path) -> None:
@@ -329,4 +346,40 @@ def test_load_recife_rejects_non_positive_optimal_value(
 ) -> None:
     _write_minimal_recife_fixture(tmp_path, {"optimal_value": bad_optimal})
     with pytest.raises(ValueError, match="optimal_value must be positive"):
+        load_recife(tmp_path)
+
+
+def test_load_recife_rejects_duplicate_node_ids(tmp_path: Path) -> None:
+    _write_minimal_recife_fixture(
+        tmp_path,
+        {
+            "nodes": [
+                {
+                    "id": "DEPOT-CAF",
+                    "name": "CAF",
+                    "type": "DEPOT",
+                    "lat": -8.06,
+                    "lon": -34.92,
+                    "demand": 0,
+                },
+                {
+                    "id": "USF-9999999",
+                    "name": "USF 1",
+                    "type": "USF",
+                    "lat": -8.05,
+                    "lon": -34.88,
+                    "demand": 15,
+                },
+                {
+                    "id": "USF-9999999",
+                    "name": "USF 2",
+                    "type": "USF",
+                    "lat": -8.04,
+                    "lon": -34.90,
+                    "demand": 25,
+                },
+            ]
+        },
+    )
+    with pytest.raises(ValueError, match="Duplicate node id.*USF-9999999"):
         load_recife(tmp_path)
