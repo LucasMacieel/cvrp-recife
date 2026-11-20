@@ -19,7 +19,7 @@ class CVRPInstance:
         depot: Index of the depot node (default 0).
         coords: Optional (N, 2) Euclidean coordinates.
         latlon: Optional (N, 2) geographic coordinates (latitude, longitude).
-        optimal_value: Optional known optimal or best-known total distance.
+        optimal_value: Optional proven optimal total distance.
         node_names: Optional list of N node labels.
     """
 
@@ -59,10 +59,14 @@ class CVRPInstance:
             raise ValueError("demands must not contain negative values")
 
         if not isinstance(self.capacity, (int, np.integer)) or int(self.capacity) <= 0:
-            raise ValueError(f"capacity must be a positive integer, got {self.capacity}")
+            raise ValueError(
+                f"capacity must be a positive integer, got {self.capacity}"
+            )
         cap = int(self.capacity)
 
-        if not isinstance(self.depot, (int, np.integer)) or not (0 <= int(self.depot) < n):
+        if not isinstance(self.depot, (int, np.integer)) or not (
+            0 <= int(self.depot) < n
+        ):
             raise ValueError(f"depot index {self.depot} out of range [0, {n})")
         dep = int(self.depot)
 
@@ -127,5 +131,7 @@ class CVRPInstance:
     @property
     def is_symmetric(self) -> bool:
         return bool(
-            np.allclose(self.distance_matrix, self.distance_matrix.T, rtol=1e-9, atol=1e-12)
+            np.allclose(
+                self.distance_matrix, self.distance_matrix.T, rtol=1e-9, atol=1e-12
+            )
         )

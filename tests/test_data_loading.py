@@ -82,7 +82,7 @@ def test_invalid_demands_and_capacity() -> None:
     [
         ("A-n32-k5.vrp", 32, 100, 784.0),
         ("A-n45-k6.vrp", 45, 100, 944.0),
-        ("A-n60-k9.vrp", 60, 100, 1408.0),
+        ("A-n60-k9.vrp", 60, 100, 1354.0),
     ],
 )
 def test_load_cvrplib_benchmarks(
@@ -123,6 +123,41 @@ def test_load_cvrplib_rejects_infeasible_demand(tmp_path: Path) -> None:
     )
     with pytest.raises(ValueError, match="exceed vehicle capacity"):
         load_cvrplib(bad_vrp)
+
+
+@pytest.mark.parametrize(
+    ("comment_line", "expected_opt"),
+    [
+        ("COMMENT : (Augerat et al, Min no of trucks: 9, Best value: 1408)", None),
+        ("COMMENT : (Augerat et al, Min no of trucks: 9, Optimal value: 1354)", 1354.0),
+        ("COMMENT : optimal value: 1354", 1354.0),
+    ],
+)
+def test_load_cvrplib_comment_optimal_vs_best_value(
+    tmp_path: Path, comment_line: str, expected_opt: float | None
+) -> None:
+    vrp = tmp_path / "comment_test.vrp"
+    vrp.write_text(
+        "NAME : comment_test\n"
+        f"{comment_line}\n"
+        "TYPE : CVRP\n"
+        "DIMENSION : 2\n"
+        "EDGE_WEIGHT_TYPE : EUC_2D\n"
+        "CAPACITY : 10\n"
+        "NODE_COORD_SECTION\n"
+        "1 0 0\n"
+        "2 3 4\n"
+        "DEMAND_SECTION\n"
+        "1 0\n"
+        "2 5\n"
+        "DEPOT_SECTION\n"
+        "1\n"
+        "-1\n"
+        "EOF",
+        encoding="utf-8",
+    )
+    inst = load_cvrplib(vrp)
+    assert inst.optimal_value == expected_opt
 
 
 def test_load_recife_road_only() -> None:

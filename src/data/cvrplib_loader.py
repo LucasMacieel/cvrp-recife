@@ -10,7 +10,7 @@ import numpy as np
 from src.data.models import CVRPInstance
 
 _OPT_VALUE_RE = re.compile(
-    r"(?:Optimal|Best)\s+value\s*:\s*([0-9]+(?:\.[0-9]+)?)",
+    r"Optimal\s+value\s*:\s*([0-9]+(?:\.[0-9]+)?)",
     re.IGNORECASE,
 )
 

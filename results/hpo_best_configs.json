@@ -15,7 +15,7 @@
     "hpo_seed": 42
   },
   "Pure_GA": {
-    "best_objective": 25.546839,
+    "best_objective": 27.34171,
     "best_trial_number": 28,
     "config": {
       "pop_size": 110,
@@ -29,7 +29,7 @@
     }
   },
   "Memetic_GA": {
-    "best_objective": 9.432093,
+    "best_objective": 10.95284,
     "best_trial_number": 17,
     "config": {
       "pop_size": 90,
