@@ -5,6 +5,7 @@ from __future__ import annotations
 import csv
 from collections import defaultdict
 from pathlib import Path
+
 import numpy as np
 from scipy import stats
 
@@ -70,7 +71,7 @@ def compare_pure_vs_memetic(rows: list[dict]) -> list[dict]:
                 row["distance"]
             )
 
-    instances = sorted({inst for inst, _ in by_inst_method.keys()})
+    instances = sorted({inst for inst, _ in by_inst_method})
     comparisons: list[dict] = []
 
     for inst in instances:

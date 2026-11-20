@@ -2,6 +2,7 @@
   "metadata": {
     "instances": [
       "A-n32-k5",
+      "A-n45-k6",
       "A-n60-k9"
     ],
     "seeds": [
@@ -9,38 +10,38 @@
       2,
       3
     ],
-    "n_trials": 25,
-    "generations": 150,
+    "n_trials": 30,
+    "generations": 100,
     "hpo_seed": 42
   },
   "Pure_GA": {
-    "best_objective": 19.781037,
-    "best_trial_number": 11,
+    "best_objective": 25.546839,
+    "best_trial_number": 28,
     "config": {
       "pop_size": 110,
-      "crossover_rate": 0.702939,
-      "mutation_rate": 0.461028,
-      "tournament_k": 5,
+      "crossover_rate": 0.753969,
+      "mutation_rate": 0.414728,
+      "tournament_k": 4,
       "elite_size": 2,
-      "crossover": "OX",
+      "crossover": "PMX",
       "mutation": "Inversion",
       "memetic": false
     }
   },
   "Memetic_GA": {
-    "best_objective": 7.325245,
+    "best_objective": 9.432093,
     "best_trial_number": 17,
     "config": {
-      "pop_size": 110,
-      "crossover_rate": 0.822308,
-      "mutation_rate": 0.437928,
-      "tournament_k": 3,
-      "elite_size": 6,
+      "pop_size": 90,
+      "crossover_rate": 0.97363,
+      "mutation_rate": 0.47555,
+      "tournament_k": 5,
+      "elite_size": 3,
       "crossover": "PMX",
       "mutation": "Inversion",
       "memetic": true,
-      "local_search_rate": 0.518094,
-      "local_search_max_passes": 25
+      "local_search_rate": 0.555198,
+      "local_search_max_passes": 15
     }
   }
 }

@@ -17,6 +17,7 @@ from src.data.models import CVRPInstance
 from src.experiments.hpo import (
     METHOD_MEMETIC,
     METHOD_PURE,
+    _resolve_tuning_instances,
     compute_greedy_baselines,
     evaluate_ga_config,
     load_tuned_configs,
@@ -349,3 +350,13 @@ def test_hpo_progress_formatting_and_cli_help() -> None:
     )
     assert "--method" in proc.stdout
     assert "--no-progress" in proc.stdout
+    assert "A-n32-k5 A-n45-k6 A-n60-k9" in proc.stdout
+    assert "A-n80-k10" not in proc.stdout
+
+
+def test_resolve_default_tuning_instances() -> None:
+    instances = _resolve_tuning_instances(None)
+    names = [inst.name for inst in instances]
+    assert names == ["A-n32-k5", "A-n45-k6", "A-n60-k9"]
+    assert "A-n80-k10" not in names
+    assert "Recife-UBS-40-road" not in names

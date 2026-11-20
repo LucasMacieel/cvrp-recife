@@ -32,7 +32,6 @@ DEFAULT_CVRPLIB_NAMES = (
     "A-n32-k5.vrp",
     "A-n45-k6.vrp",
     "A-n60-k9.vrp",
-    "A-n80-k10.vrp",
 )
 
 
@@ -457,12 +456,12 @@ def run_hpo_suite(
 
 
 def _resolve_tuning_instances(instance_names: list[str] | None) -> list[CVRPInstance]:
-    """Resolve tuning instances from CLI names or default representative subset."""
+    """Resolve tuning instances from CLI names or default CVRPLIB training set."""
     cvrplib = [
         load_cvrplib(Path("data/cvrplib") / name) for name in DEFAULT_CVRPLIB_NAMES
     ]
     if not instance_names:
-        return [cvrplib[0], cvrplib[2]]  # A-n32-k5, A-n60-k9
+        return cvrplib
 
     available: dict[str, CVRPInstance] = {inst.name: inst for inst in cvrplib}
     recife_dir = Path("data/recife_ubs")
@@ -516,7 +515,7 @@ def build_arg_parser() -> argparse.ArgumentParser:
         "--instances",
         nargs="+",
         default=None,
-        help="Optional instance names or .vrp paths (default: A-n32-k5 A-n60-k9).",
+        help="Optional instance names or .vrp paths (default: A-n32-k5 A-n45-k6 A-n60-k9).",
     )
     parser.add_argument("--output-dir", type=str, default="results")
     parser.add_argument(

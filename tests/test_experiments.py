@@ -2,7 +2,9 @@
 
 from __future__ import annotations
 
+import csv
 import json
+from dataclasses import replace
 from io import StringIO
 from pathlib import Path
 
@@ -17,16 +19,14 @@ from src.experiments.plots import plot_comparative_boxplots, plot_convergence_cu
 from src.experiments.progress import (
     create_experiment_progress,
     format_run_detail,
-    render_phase1_summary,
     render_phase2_summary,
 )
 from src.experiments.runner import (
     build_arg_parser,
+    load_cvrplib_suite,
     load_recife_suite,
-    run_phase1_ablation,
     run_phase2_comparison,
     run_post_processing,
-    select_best_operators,
 )
 from src.experiments.stats import (
     aggregate_results,
@@ -92,24 +92,11 @@ def test_smoke_experiments_plots_and_recife_map(tmp_path: Path) -> None:
     inst_cvrp = load_cvrplib("data/cvrplib/A-n32-k5.vrp")
     inst_recife = load_recife("data/recife_ubs")
 
-    p1_rows = run_phase1_ablation(
-        [inst_cvrp],
-        seeds=[1, 2],
-        pop_size=12,
-        generations=5,
-        output_dir=tmp_path,
-    )
-    assert len(p1_rows) == 8
-    assert (tmp_path / "phase1_ablation.csv").exists()
-    best_cx, best_mut = select_best_operators(p1_rows)
-    assert best_cx in {"OX", "PMX"}
-    assert best_mut in {"Swap", "Inversion"}
-
     p2_rows, p2_histories = run_phase2_comparison(
         [inst_cvrp, inst_recife],
         seeds=[1, 2],
-        crossover=best_cx,
-        mutation=best_mut,
+        crossover="OX",
+        mutation="Inversion",
         pop_size=12,
         generations=5,
         local_search_rate=0.3,
@@ -302,6 +289,13 @@ def test_load_recife_suite_road_only() -> None:
     assert suite[0].is_symmetric is False
 
 
+def test_load_cvrplib_suite_three_instances() -> None:
+    suite = load_cvrplib_suite("data/cvrplib")
+    names = [inst.name for inst in suite]
+    assert names == ["A-n32-k5", "A-n45-k6", "A-n60-k9"]
+    assert "A-n80-k10" not in names
+
+
 def test_progress_formatting_and_summary_tables() -> None:
     # With optimal_value -> includes gap%
     with_opt = format_run_detail(
@@ -340,46 +334,11 @@ def test_progress_formatting_and_summary_tables() -> None:
     buf = StringIO()
     console = Console(file=buf, force_terminal=False, width=160)
     with create_experiment_progress(console=console, disable=False) as progress:
-        tid = progress.add_task("Phase 1: Ablation", total=2, detail=with_opt)
+        tid = progress.add_task("Phase 2: Comparison", total=2, detail=with_opt)
         progress.advance(tid, 1)
     rendered_progress = buf.getvalue()
-    assert "Phase 1: Ablation" in rendered_progress
+    assert "Phase 2: Comparison" in rendered_progress
     assert "A-n32-k5" in rendered_progress
-
-    # Phase 1 summary table
-    p1_rows = [
-        {
-            "instance": "A-n32-k5",
-            "method": "Pure_GA",
-            "crossover": "OX",
-            "mutation": "Inversion",
-            "seed": 1,
-            "distance": 800.0,
-            "optimal_value": 784.0,
-            "num_vehicles": 5,
-            "runtime_sec": 0.12,
-        },
-        {
-            "instance": "A-n32-k5",
-            "method": "Pure_GA",
-            "crossover": "PMX",
-            "mutation": "Swap",
-            "seed": 1,
-            "distance": 900.0,
-            "optimal_value": 784.0,
-            "num_vehicles": 5,
-            "runtime_sec": 0.15,
-        },
-    ]
-    buf1 = StringIO()
-    c1 = Console(file=buf1, force_terminal=False, width=160)
-    render_phase1_summary(c1, p1_rows, ("OX", "Inversion"))
-    out1 = buf1.getvalue()
-    assert "Phase 1: Operator Ablation Summary" in out1
-    assert "OX+Inversion" in out1
-    assert "PMX+Swap" in out1
-    assert "Selected" in out1
-    assert "800.00" in out1
 
     # Phase 2 summary table (one with optimal_value, one without)
     p2_rows = [
@@ -424,45 +383,6 @@ def test_runner_progress_and_no_progress(tmp_path: Path) -> None:
 
     on_dir = tmp_path / "with_progress"
     off_dir = tmp_path / "no_progress"
-
-    buf_on = StringIO()
-    console_on = Console(file=buf_on, force_terminal=False, width=160)
-    p1_on = run_phase1_ablation(
-        [inst_cvrp],
-        seeds=[1, 2],
-        pop_size=10,
-        generations=3,
-        output_dir=on_dir,
-        show_progress=True,
-        console=console_on,
-    )
-    p1_out = buf_on.getvalue()
-    assert "Phase 1: Ablation" in p1_out
-    assert "A-n32-k5" in p1_out
-    assert "OX+Inversion" in p1_out
-    assert "seed 2/2" in p1_out
-    assert "Phase 1: Operator Ablation Summary" in p1_out
-
-    buf_off = StringIO()
-    console_off = Console(file=buf_off, force_terminal=False, width=160)
-    p1_off = run_phase1_ablation(
-        [inst_cvrp],
-        seeds=[1, 2],
-        pop_size=10,
-        generations=3,
-        output_dir=off_dir,
-        show_progress=False,
-        console=console_off,
-    )
-    assert buf_off.getvalue() == ""
-    assert len(p1_on) == len(p1_off) == 8
-    assert (on_dir / "phase1_ablation.csv").exists()
-    assert (off_dir / "phase1_ablation.csv").exists()
-    assert (on_dir / "phase1_summary.csv").exists()
-    assert (off_dir / "phase1_summary.csv").exists()
-    assert (on_dir / "phase1_histories.json").read_text(encoding="utf-8") == (
-        off_dir / "phase1_histories.json"
-    ).read_text(encoding="utf-8")
 
     # Phase 2 with progress enabled vs disabled
     buf2_on = StringIO()
@@ -628,10 +548,15 @@ def test_runner_cli_tune_and_tuned_config_flags(
     defaults = parser.parse_args([])
     assert defaults.tuned_config is None
     assert defaults.tune is False
-    assert defaults.hpo_trials == 25
+    assert defaults.hpo_trials == 30
     assert defaults.hpo_seeds == 3
-    assert defaults.hpo_generations is None
+    assert defaults.hpo_generations == 100
     assert defaults.hpo_seed == 42
+
+    # Removed legacy CLI flags must fail
+    for removed_flag in ("--phase1-seeds", "--pop-size", "--ls-rate"):
+        with pytest.raises(SystemExit):
+            parser.parse_args([removed_flag, "5"])
 
     # Mutually exclusive flags must fail
     with pytest.raises(SystemExit):
@@ -647,13 +572,13 @@ def test_runner_cli_tune_and_tuned_config_flags(
     with pytest.raises(SystemExit):
         runner_main(["--tuned-config", str(invalid_cfg_path)])
 
-    # Valid --tuned-config skips Phase 1 and passes tuned configs to Phase 2
+    # Valid --tuned-config skips inline Phase 1 HPO and passes tuned configs to Phase 2
     cfg_path = tmp_path / "hpo_best_configs.json"
     cfg_path.write_text(
         json.dumps(
             {
                 "metadata": {
-                    "instances": ["A-n32-k5"],
+                    "instances": ["A-n32-k5", "A-n45-k6", "A-n60-k9"],
                     "seeds": [1],
                     "n_trials": 1,
                     "generations": 3,
@@ -695,10 +620,13 @@ def test_runner_cli_tune_and_tuned_config_flags(
     )
 
     inst = load_cvrplib("data/cvrplib/A-n32-k5.vrp")
+    recife_stub = replace(inst, name="Recife-UBS-40-road")
     monkeypatch.setattr(
         "src.experiments.runner.load_cvrplib_suite", lambda _: [inst, inst, inst]
     )
-    monkeypatch.setattr("src.experiments.runner.load_recife_suite", lambda _: [inst])
+    monkeypatch.setattr(
+        "src.experiments.runner.load_recife_suite", lambda _: [recife_stub]
+    )
     monkeypatch.setattr(
         "src.experiments.runner.run_post_processing", lambda *a, **kw: None
     )
@@ -718,9 +646,52 @@ def test_runner_cli_tune_and_tuned_config_flags(
         ]
     )
     assert not (out_tuned / "phase1_ablation.csv").exists()
+    assert not (out_tuned / "hpo_best_configs.json").exists()
     assert (out_tuned / "phase2_results.csv").is_file()
+    with (out_tuned / "phase2_results.csv").open("r", encoding="utf-8") as fh:
+        tuned_rows = list(csv.DictReader(fh))
+    pure_tuned_rows = [r for r in tuned_rows if r["method"] == "Pure_GA"]
+    mem_tuned_rows = [r for r in tuned_rows if r["method"] == "Memetic_GA"]
+    assert pure_tuned_rows and all(
+        r["crossover"] == "PMX" and r["mutation"] == "Swap" for r in pure_tuned_rows
+    )
+    assert mem_tuned_rows and all(
+        r["crossover"] == "OX" and r["mutation"] == "Inversion" for r in mem_tuned_rows
+    )
 
-    # --tune runs inline HPO, skips Phase 1, and writes both HPO and Phase 2 artifacts
+    # Default invocation (omitting --tuned-config and --tune) runs inline Phase 1 HPO -> Phase 2
+    out_default = tmp_path / "out_default"
+    runner_main(
+        [
+            "--hpo-trials",
+            "1",
+            "--hpo-seeds",
+            "1",
+            "--hpo-generations",
+            "2",
+            "--phase2-seeds",
+            "1",
+            "--generations",
+            "2",
+            "--output-dir",
+            str(out_default),
+            "--no-progress",
+        ]
+    )
+    assert not (out_default / "phase1_ablation.csv").exists()
+    assert (out_default / "hpo_best_configs.json").is_file()
+    assert (out_default / "hpo_trials_pure_ga.csv").is_file()
+    assert (out_default / "hpo_trials_memetic_ga.csv").is_file()
+    assert (out_default / "phase2_results.csv").is_file()
+    default_hpo_meta = json.loads(
+        (out_default / "hpo_best_configs.json").read_text(encoding="utf-8")
+    )["metadata"]
+    assert "Recife-UBS-40-road" not in default_hpo_meta["instances"]
+    with (out_default / "phase2_results.csv").open("r", encoding="utf-8") as fh:
+        default_p2_instances = {r["instance"] for r in csv.DictReader(fh)}
+    assert "Recife-UBS-40-road" in default_p2_instances
+
+    # --tune alias also runs inline Phase 1 HPO -> Phase 2
     out_inline = tmp_path / "out_inline"
     runner_main(
         [

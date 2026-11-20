@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from pathlib import Path
+
 import numpy as np
 import pytest
 
@@ -11,22 +12,31 @@ from src.data.models import CVRPInstance
 from src.data.recife_loader import load_recife
 
 
-def _valid_instance(**overrides) -> CVRPInstance:
-    defaults = dict(
-        name="toy-3",
-        distance_matrix=np.array(
-            [
-                [0.0, 2.0, 3.0],
-                [2.0, 0.0, 4.0],
-                [3.0, 4.0, 0.0],
-            ]
+def _valid_instance(
+    *,
+    name: str = "toy-3",
+    distance_matrix: np.ndarray | None = None,
+    demands: np.ndarray | None = None,
+    capacity: int = 10,
+    depot: int = 0,
+) -> CVRPInstance:
+    return CVRPInstance(
+        name=name,
+        distance_matrix=(
+            distance_matrix
+            if distance_matrix is not None
+            else np.array(
+                [
+                    [0.0, 2.0, 3.0],
+                    [2.0, 0.0, 4.0],
+                    [3.0, 4.0, 0.0],
+                ]
+            )
         ),
-        demands=np.array([0, 5, 7]),
-        capacity=10,
-        depot=0,
+        demands=demands if demands is not None else np.array([0, 5, 7]),
+        capacity=capacity,
+        depot=depot,
     )
-    defaults.update(overrides)
-    return CVRPInstance(**defaults)
 
 
 def test_valid_cvrp_instance_properties() -> None:
@@ -73,7 +83,6 @@ def test_invalid_demands_and_capacity() -> None:
         ("A-n32-k5.vrp", 32, 100, 784.0),
         ("A-n45-k6.vrp", 45, 100, 944.0),
         ("A-n60-k9.vrp", 60, 100, 1408.0),
-        ("A-n80-k10.vrp", 80, 100, 1764.0),
     ],
 )
 def test_load_cvrplib_benchmarks(
@@ -95,25 +104,21 @@ def test_load_cvrplib_benchmarks(
 def test_load_cvrplib_rejects_infeasible_demand(tmp_path: Path) -> None:
     bad_vrp = tmp_path / "bad.vrp"
     bad_vrp.write_text(
-        "\n".join(
-            [
-                "NAME : bad",
-                "TYPE : CVRP",
-                "DIMENSION : 2",
-                "EDGE_WEIGHT_TYPE : EUC_2D",
-                "CAPACITY : 10",
-                "NODE_COORD_SECTION",
-                "1 0 0",
-                "2 3 4",
-                "DEMAND_SECTION",
-                "1 0",
-                "2 15",
-                "DEPOT_SECTION",
-                "1",
-                "-1",
-                "EOF",
-            ]
-        ),
+        "NAME : bad\n"
+        "TYPE : CVRP\n"
+        "DIMENSION : 2\n"
+        "EDGE_WEIGHT_TYPE : EUC_2D\n"
+        "CAPACITY : 10\n"
+        "NODE_COORD_SECTION\n"
+        "1 0 0\n"
+        "2 3 4\n"
+        "DEMAND_SECTION\n"
+        "1 0\n"
+        "2 15\n"
+        "DEPOT_SECTION\n"
+        "1\n"
+        "-1\n"
+        "EOF",
         encoding="utf-8",
     )
     with pytest.raises(ValueError, match="exceed vehicle capacity"):
@@ -197,9 +202,7 @@ def test_load_recife_enriched_demand_metadata_offline(tmp_path: Path) -> None:
             },
         ],
     }
-    (tmp_path / "recife_ubs.json").write_text(
-        json.dumps(enriched), encoding="utf-8"
-    )
+    (tmp_path / "recife_ubs.json").write_text(json.dumps(enriched), encoding="utf-8")
     road_matrix = np.array(
         [
             [0.0, 5.2, 3.8],

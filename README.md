@@ -1,13 +1,13 @@
 # Memetic CVRP — CVRPLIB Benchmarks & Supply Distribution Across UBS/USF Health Units in Recife/PE
 
-Computational Intelligence course project applying **Evolutionary Computation** (Pure Genetic Algorithm and Memetic Genetic Algorithm with intra-route `2-opt` local search) to the **Capacitated Vehicle Routing Problem (CVRP)**, validated on classical CVRPLIB benchmark instances and a real-world geographic scenario for distributing medical supplies to Primary Health Units (UBSs/USFs) in Recife/PE.
+Computational Intelligence course project applying **Evolutionary Computation** (Pure Genetic Algorithm and Memetic Genetic Algorithm with intra-route `2-opt` local search) to the **Capacitated Vehicle Routing Problem (CVRP)**, tuned via Bayesian Hyperparameter Optimization (Optuna TPE) on classical CVRPLIB benchmarks and evaluated on a held-out real-world geographic scenario for distributing medical supplies to Primary Health Units (UBSs/USFs) in Recife/PE.
 
 ## Project Structure
 
 ```text
 cvrp-recife/
 ├── data/
-│   ├── cvrplib/          # Classical instances (.vrp): A-n32-k5, A-n45-k6, A-n60-k9, A-n80-k10
+│   ├── cvrplib/          # Classical instances (.vrp): A-n32-k5, A-n45-k6, A-n60-k9
 │   └── recife_ubs/       # Static dataset of 40 UBSs/USFs + depot (JSON + road distance matrix .npy)
 ├── scripts/
 │   └── prepare_recife_data.py  # Consolidation of Recife Open Data + OSRM road matrix
@@ -23,14 +23,14 @@ cvrp-recife/
 │   │   ├── local_search.py     # Intra-route 2-opt local search (symmetric and asymmetric)
 │   │   └── genetic.py          # Pure GA and Lamarckian Memetic GA
 │   └── experiments/
-│       ├── runner.py           # Runner for Phase 1 (ablation) and Phase 2 (30-seed comparison)
-│       ├── hpo.py              # Optuna TPE hyperparameter optimization for Pure GA and Memetic GA
+│       ├── runner.py           # Runner for Phase 1 (Bayesian HPO) -> Phase 2 (30-seed benchmarking)
+│       ├── hpo.py              # Standalone Optuna TPE hyperparameter optimization for Pure GA and Memetic GA
 │       ├── progress.py         # Rich progress bars and summary tables for experiments and HPO
 │       ├── stats.py            # Aggregation, gap %, and Wilcoxon / Mann-Whitney tests
 │       ├── plots.py            # Convergence curves and comparative boxplots (.png)
 │       └── map_recife.py       # Interactive Folium map of routes in Recife (.html)
 ├── tests/                      # Unit tests and smoke tests suite (pytest)
-└── results/                    # Raw/summary CSVs, PNG charts, and recife_map.html
+└── results/                    # HPO configs/trials, Phase 2 CSVs, PNG charts, and recife_map.html
 ```
 
 ## Installation
@@ -68,44 +68,40 @@ uv run scripts/prepare_recife_data.py
 
 Optional CLI flags: `--output-dir`, `--d-min`, `--d-max`, `--capacity`, `--stock-csv`. Queries Recife Open Data (unless `--stock-csv` is provided) and the public OSRM API (`router.project-osrm.org`) for driving distances, failing fast with `RuntimeError` if OSRM is unavailable or returns unreachable cells.
 
-### 3. Full experimental suite (Phase 1 + Phase 2 + Plots + Recife Map)
+### 3. Experimental Methodology: Phase 1 (Bayesian HPO) → Phase 2 (Benchmarking & Statistical Evaluation)
 
-Run from the repository root:
+The experimental pipeline follows a leakage-free **Phase 1 (Bayesian HPO) → Phase 2 (Benchmarking & Statistical Evaluation)** protocol:
+
+1. **Phase 1 (Bayesian HPO):** Uses Optuna's Tree-structured Parzen Estimator (TPE) to jointly optimize categorical operators (`OX`/`PMX`, `Swap`/`Inversion`) and numeric hyperparameters (`pop_size`, `crossover_rate`, `mutation_rate`, `tournament_k`, `elite_size`, plus `local_search_rate` and `local_search_max_passes` for `Memetic_GA`) independently for `Pure_GA` and `Memetic_GA`.
+   - **Training set (`A-n32-k5`, `A-n45-k6`, `A-n60-k9`):** Three symmetric Euclidean CVRPLIB instances spanning 32–60 nodes (bracketing Recife's 41 nodes). Default budget: `--hpo-trials 30`, `--hpo-seeds 3`, `--hpo-generations 100`, `--hpo-seed 42`.
+   - **Held-out split & domain shift:** `Recife-UBS-40-road` (41 nodes, asymmetric OSRM road network) is strictly held out from Phase 1 tuning. Evaluating symmetric-tuned configs on the asymmetric urban road network tests out-of-distribution generalization with zero data leakage.
+2. **Phase 2 (Benchmarking & Statistical Evaluation):** Runs across all 4 instances (`A-n32-k5`, `A-n45-k6`, `A-n60-k9`, and held-out `Recife-UBS-40-road`), comparing the deterministic `Greedy` baseline (`seed=0`) against the Phase 1 tuned `Pure_GA` and `Memetic_GA` for `--phase2-seeds` runs (default `30`) with `--generations` (default `150`). Statistical comparison (`phase2_stats_tests.csv`) runs two-sided Wilcoxon signed-rank (paired by seed) and Mann-Whitney U tests between `Pure_GA` and `Memetic_GA` (`significant_005` when `wilcoxon_p < 0.05`).
+3. **Charts & Map:** Generates convergence curves, comparative boxplots, and the interactive Folium map (`recife_map.html`) from the best `Memetic_GA` routes on `Recife-UBS-40-road` (querying OSRM for road-snapped polylines with straight-line fallback if offline).
+
+#### Option A: 1-step full pipeline (inline Phase 1 HPO → Phase 2)
 
 ```bash
 uv run -m src.experiments.runner
 ```
 
-Execution pipeline:
-1. **Phase 1 (Ablation):** Evaluates `Pure_GA` across all 4 operator pairs `(OX, PMX) × (Swap, Inversion)` on two representative CVRPLIB instances (`A-n32-k5`, `A-n60-k9`) for `--phase1-seeds` runs (default `10`), then selects the pair with the lowest overall mean distance.
-2. **Phase 2 (Comparison & Stats):** Runs across all 5 instances (`A-n32-k5`, `A-n45-k6`, `A-n60-k9`, `A-n80-k10`, `Recife-UBS-40-road`), comparing the deterministic `Greedy` baseline (`seed=0`) against `Pure_GA` and `Memetic_GA` for `--phase2-seeds` runs (default `30`) using the Phase 1 winning operators. Statistical comparison (`phase2_stats_tests.csv`) runs two-sided Wilcoxon signed-rank (paired by seed) and Mann-Whitney U tests between `Pure_GA` and `Memetic_GA` (`significant_005` when `wilcoxon_p < 0.05`).
-3. **Charts & Map:** Generates convergence curves, comparative boxplots, and the interactive Folium map (`recife_map.html`) from the best `Memetic_GA` routes on `Recife-UBS-40-road` (querying OSRM for road-snapped polylines with straight-line fallback if offline).
+Optional CLI parameters (`uv run -m src.experiments.runner --help`): `--phase2-seeds` (`30`), `--generations` (`150`), `--hpo-trials` (`30`), `--hpo-seeds` (`3`), `--hpo-generations` (`100`), `--hpo-seed` (`42`), `--tune` (optional alias for inline Phase 1 HPO, mutually exclusive with `--tuned-config`), `--output-dir` (`results`), `--no-progress`.
 
-Optional CLI parameters: `--phase1-seeds` (`10`), `--phase2-seeds` (`30`), `--pop-size` (`60`), `--generations` (`150`), `--ls-rate` (`0.30`), `--output-dir` (`results`), `--no-progress`. Fixed [`GAConfig`](src/solver/genetic.py) defaults: `crossover_rate=0.85`, `mutation_rate=0.20`, `tournament_k=3`, `elite_size=2`, `local_search_max_passes=15`.
+#### Option B: 2-step pipeline (standalone Phase 1 HPO + Phase 2 with `--tuned-config`)
 
-#### Hyperparameter Optimization (Optuna TPE)
-
-You can tune `Pure_GA` and `Memetic_GA` independently with Optuna's TPE sampler (`src/experiments/hpo.py`) on the representative subset (`A-n32-k5`, `A-n60-k9`):
+Run Phase 1 Bayesian HPO standalone (`uv run -m src.experiments.hpo --help`):
 
 ```bash
-uv run -m src.experiments.hpo --help
-uv run -m src.experiments.hpo --trials 30 --seeds 3 --generations 100
+uv run -m src.experiments.hpo --instances A-n32-k5 A-n45-k6 A-n60-k9 --trials 30 --seeds 3 --generations 100
 ```
 
-This exports `results/hpo_best_configs.json`, `results/hpo_trials_pure_ga.csv`, and `results/hpo_trials_memetic_ga.csv`. Use `--method pure|memetic|both` to tune a single solver, `--instances` to customize tuning instances, or `--no-progress` to suppress Rich output.
-
-To run Phase 2 benchmarking with tuned per-method hyperparameters (skipping Phase 1 ablation):
+This exports `results/hpo_best_configs.json`, `results/hpo_trials_pure_ga.csv`, and `results/hpo_trials_memetic_ga.csv` (use `--method pure|memetic|both`, `--hpo-seed`, `--output-dir`, or `--no-progress`). Then run Phase 2 benchmarking using the saved configs:
 
 ```bash
-uv run -m src.experiments.runner --help
-# Option A: Load pre-computed HPO configs
 uv run -m src.experiments.runner --tuned-config results/hpo_best_configs.json
-# Option B: Run HPO inline before Phase 2
-uv run -m src.experiments.runner --tune --hpo-trials 25 --hpo-seeds 3
 ```
 
 Results are saved in `results/`:
-- `phase1_ablation.csv`, `phase1_summary.csv`, `phase1_histories.json`
+- `hpo_best_configs.json`, `hpo_trials_pure_ga.csv`, `hpo_trials_memetic_ga.csv`
 - `phase2_results.csv`, `phase2_summary.csv`, `phase2_stats_tests.csv`
 - `phase2_histories.json`, `best_solutions.json`
 - `convergence_*.png`, `boxplot_*.png`
@@ -120,7 +116,7 @@ Results are saved in `results/`:
 - **Implicit depot (`0`):** The depot index (`0`) is omitted from every inner list; each route implicitly starts and ends at the depot (`0 -> r[0] -> ... -> r[-1] -> 0`).
 - **0-based node index mapping:**
   - **Recife (`Recife-UBS-40-road`):** Indices `0..40` match the 0-based array position in `"nodes"` inside [`data/recife_ubs/recife_ubs.json`](data/recife_ubs/recife_ubs.json) (`0` is `DEPOT-CAF`; `1..40` are the 40 UBS/USF units).
-  - **CVRPLIB (`A-n32-k5`, `A-n45-k6`, `A-n60-k9`, `A-n80-k10`):** `.vrp` files use 1-based IDs in `NODE_COORD_SECTION`; [`load_cvrplib`](src/data/cvrplib_loader.py) sorts those IDs and reindexes them to 0-based (`idx = node_id - 1`, so `.vrp` node `1` becomes `0`, node `2` becomes `1`, etc.).
+  - **CVRPLIB (`A-n32-k5`, `A-n45-k6`, `A-n60-k9`):** `.vrp` files use 1-based IDs in `NODE_COORD_SECTION`; [`load_cvrplib`](src/data/cvrplib_loader.py) sorts those IDs and reindexes them to 0-based (`idx = node_id - 1`, so `.vrp` node `1` becomes `0`, node `2` becomes `1`, etc.).
 - **Distance units & symmetry:** CVRPLIB distances use TSPLIB `EUC_2D` nearest-integer rounding (`floor(d + 0.5)`). Recife distances are in kilometers (`km`), using the precomputed OSRM driving matrix (`Recife-UBS-40-road`, which is asymmetric due to one-way streets).
 
 ## Recife Routes Map

@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from collections import defaultdict
 from pathlib import Path
+
 import matplotlib
 
 matplotlib.use("Agg")
@@ -32,7 +33,9 @@ def plot_convergence_curves(
             arr = np.asarray(runs, dtype=np.float64)
             gens = np.arange(arr.shape[1])
             mean = np.mean(arr, axis=0)
-            std = np.std(arr, axis=0, ddof=1) if arr.shape[0] > 1 else np.zeros_like(mean)
+            std = (
+                np.std(arr, axis=0, ddof=1) if arr.shape[0] > 1 else np.zeros_like(mean)
+            )
             ax.plot(gens, mean, label=label, linewidth=2.0)
             ax.fill_between(gens, mean - std, mean + std, alpha=0.2)
 
@@ -95,8 +98,8 @@ def plot_comparative_boxplots(
                 linewidth=1.5,
                 label=f"Greedy ({methods['Greedy'][0]:.1f})",
             )
-        if inst_name in opt_by_inst and opt_by_inst[inst_name] is not None:
-            opt_v = opt_by_inst[inst_name]
+        opt_v = opt_by_inst.get(inst_name)
+        if opt_v is not None:
             ax.axhline(
                 opt_v,
                 color="tab:green",

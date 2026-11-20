@@ -1,4 +1,4 @@
-"""Automated multi-seed experiment runner for CVRP ablation and benchmarking."""
+"""Automated multi-seed experiment runner for CVRP Phase 1 (Bayesian HPO) and Phase 2 benchmarking."""
 
 from __future__ import annotations
 
@@ -7,7 +7,6 @@ import json
 from dataclasses import replace
 from pathlib import Path
 
-import numpy as np
 from rich.console import Console
 
 from src.data.cvrplib_loader import load_cvrplib
@@ -24,7 +23,6 @@ from src.experiments.plots import plot_comparative_boxplots, plot_convergence_cu
 from src.experiments.progress import (
     create_experiment_progress,
     format_run_detail,
-    render_phase1_summary,
     render_phase2_summary,
 )
 from src.experiments.stats import (
@@ -38,9 +36,9 @@ from src.solver.greedy import solve_greedy
 
 
 def load_cvrplib_suite(data_dir: str | Path = "data/cvrplib") -> list[CVRPInstance]:
-    """Load the 4 benchmark CVRPLIB instances in increasing size order."""
+    """Load the 3 benchmark CVRPLIB instances in increasing size order."""
     base = Path(data_dir)
-    names = ["A-n32-k5.vrp", "A-n45-k6.vrp", "A-n60-k9.vrp", "A-n80-k10.vrp"]
+    names = ["A-n32-k5.vrp", "A-n45-k6.vrp", "A-n60-k9.vrp"]
     return [load_cvrplib(base / name) for name in names]
 
 
@@ -75,116 +73,6 @@ def _make_row(
         "num_vehicles": int(num_vehicles),
         "runtime_sec": round(float(runtime_sec), 6),
     }
-
-
-def run_phase1_ablation(
-    instances: list[CVRPInstance],
-    seeds: list[int],
-    *,
-    pop_size: int = 60,
-    generations: int = 150,
-    output_dir: str | Path = "results",
-    show_progress: bool = True,
-    console: Console | None = None,
-) -> list[dict]:
-    """Phase 1: Ablation over (OX, PMX) x (Swap, Inversion) on Pure GA."""
-    out = Path(output_dir)
-    out.mkdir(parents=True, exist_ok=True)
-    active_console = console or Console()
-
-    combos = [
-        ("OX", "Swap"),
-        ("OX", "Inversion"),
-        ("PMX", "Swap"),
-        ("PMX", "Inversion"),
-    ]
-    rows: list[dict] = []
-    histories: dict[str, dict[str, list[list[float]]]] = {}
-    total_runs = len(instances) * len(combos) * len(seeds)
-
-    with create_experiment_progress(
-        console=active_console, disable=not show_progress
-    ) as progress:
-        task_id = progress.add_task(
-            "Phase 1: Ablation", total=total_runs, detail="starting..."
-        )
-        for inst in instances:
-            histories[inst.name] = {}
-            for cx, mut in combos:
-                label = f"{cx}+{mut}"
-                histories[inst.name][label] = []
-                best_dist: float | None = None
-                for seed_idx, seed in enumerate(seeds, start=1):
-                    progress.update(
-                        task_id,
-                        detail=format_run_detail(
-                            inst.name,
-                            label,
-                            seed_idx,
-                            len(seeds),
-                            best_distance=best_dist,
-                            optimal_value=inst.optimal_value,
-                        ),
-                    )
-                    cfg = GAConfig(
-                        pop_size=pop_size,
-                        generations=generations,
-                        crossover=cx,
-                        mutation=mut,
-                        memetic=False,
-                        seed=seed,
-                    )
-                    res = solve_genetic(inst, cfg)
-                    best_dist = (
-                        res.distance
-                        if best_dist is None
-                        else min(best_dist, res.distance)
-                    )
-                    rows.append(
-                        _make_row(
-                            inst,
-                            "Pure_GA",
-                            cx,
-                            mut,
-                            seed,
-                            res.distance,
-                            res.num_vehicles,
-                            res.runtime_sec,
-                        )
-                    )
-                    if res.history is not None:
-                        histories[inst.name][label].append(res.history)
-                    progress.update(
-                        task_id,
-                        advance=1,
-                        detail=format_run_detail(
-                            inst.name,
-                            label,
-                            seed_idx,
-                            len(seeds),
-                            last_distance=res.distance,
-                            best_distance=best_dist,
-                            optimal_value=inst.optimal_value,
-                        ),
-                    )
-
-    save_csv(rows, out / "phase1_ablation.csv")
-    save_csv(aggregate_results(rows), out / "phase1_summary.csv")
-    (out / "phase1_histories.json").write_text(json.dumps(histories), encoding="utf-8")
-    if show_progress and rows:
-        render_phase1_summary(active_console, rows, select_best_operators(rows))
-    return rows
-
-
-def select_best_operators(ablation_rows: list[dict]) -> tuple[str, str]:
-    """Select the (crossover, mutation) pair with the lowest overall mean distance."""
-    summary = aggregate_results(ablation_rows)
-    by_pair: dict[tuple[str, str], list[float]] = {}
-    for row in summary:
-        pair = (str(row["crossover"]), str(row["mutation"]))
-        by_pair.setdefault(pair, []).append(float(row["mean_distance"]))
-    best_pair = min(by_pair.keys(), key=lambda p: float(np.mean(by_pair[p])))
-    return best_pair
 
 
 def run_phase2_comparison(
@@ -353,13 +241,22 @@ def run_phase2_comparison(
 
 
 def build_arg_parser() -> argparse.ArgumentParser:
-    """Create the CLI argument parser for the experiment runner."""
-    parser = argparse.ArgumentParser(description="Run CVRP Memetic GA experiments.")
-    parser.add_argument("--phase1-seeds", type=int, default=10)
-    parser.add_argument("--phase2-seeds", type=int, default=30)
-    parser.add_argument("--pop-size", type=int, default=60)
-    parser.add_argument("--generations", type=int, default=150)
-    parser.add_argument("--ls-rate", type=float, default=0.30)
+    """Create the CLI argument parser for the Phase 1 (HPO) -> Phase 2 runner."""
+    parser = argparse.ArgumentParser(
+        description="Run CVRP Phase 1 (Bayesian HPO) and Phase 2 benchmarking."
+    )
+    parser.add_argument(
+        "--phase2-seeds",
+        type=int,
+        default=30,
+        help="Number of random seeds per instance/method in Phase 2.",
+    )
+    parser.add_argument(
+        "--generations",
+        type=int,
+        default=150,
+        help="Generation budget per Phase 2 run.",
+    )
     parser.add_argument("--output-dir", type=str, default="results")
     parser.add_argument(
         "--no-progress",
@@ -371,36 +268,36 @@ def build_arg_parser() -> argparse.ArgumentParser:
         "--tuned-config",
         type=str,
         default=None,
-        help="Path to hpo_best_configs.json; skips Phase 1 and uses tuned configs in Phase 2.",
+        help="Path to hpo_best_configs.json; skips inline Phase 1 HPO and uses pre-computed configs in Phase 2.",
     )
     tune_group.add_argument(
         "--tune",
         action="store_true",
-        help="Run Optuna HPO before Phase 2 instead of Phase 1 ablation.",
+        help="Optional alias for default inline Phase 1 Bayesian HPO before Phase 2.",
     )
     parser.add_argument(
         "--hpo-trials",
         type=int,
-        default=25,
-        help="Number of Optuna trials per method when --tune is set.",
+        default=30,
+        help="Number of Optuna trials per method for inline Phase 1 HPO.",
     )
     parser.add_argument(
         "--hpo-seeds",
         type=int,
         default=3,
-        help="Number of evaluation seeds per HPO trial when --tune is set.",
+        help="Number of evaluation seeds per inline Phase 1 HPO trial.",
     )
     parser.add_argument(
         "--hpo-generations",
         type=int,
-        default=None,
-        help="Generation budget per HPO evaluation (defaults to --generations).",
+        default=100,
+        help="Generation budget per inline Phase 1 HPO evaluation.",
     )
     parser.add_argument(
         "--hpo-seed",
         type=int,
         default=42,
-        help="Master seed for Optuna TPESampler when --tune is set.",
+        help="Master seed for Optuna TPESampler in inline Phase 1 HPO.",
     )
     return parser
 
@@ -470,27 +367,19 @@ def main(argv: list[str] | None = None) -> None:
             f"Loaded tuned configs from {args.tuned_config} "
             f"(Pure_GA: {pure_tuned_cfg.crossover}+{pure_tuned_cfg.mutation}, "
             f"Memetic_GA: {memetic_tuned_cfg.crossover}+{memetic_tuned_cfg.mutation}); "
-            "skipping Phase 1 ablation."
+            "skipping inline Phase 1 HPO."
         )
 
     cvrplib_instances = load_cvrplib_suite("data/cvrplib")
     recife_instances = load_recife_suite("data/recife_ubs")
 
-    # Tuning / Phase 1 representative subset (A-n32-k5, A-n60-k9)
-    p1_instances = [cvrplib_instances[0], cvrplib_instances[2]]
-
-    if args.tune:
-        hpo_gens = (
-            args.hpo_generations
-            if args.hpo_generations is not None
-            else args.generations
-        )
+    if args.tuned_config is None:
         hpo_seeds = list(range(1, args.hpo_seeds + 1))
         run_hpo_suite(
-            p1_instances,
+            cvrplib_instances,
             hpo_seeds,
             n_trials=args.hpo_trials,
-            generations=hpo_gens,
+            generations=args.hpo_generations,
             hpo_seed=args.hpo_seed,
             output_dir=args.output_dir,
             show_progress=show_progress,
@@ -501,36 +390,14 @@ def main(argv: list[str] | None = None) -> None:
         )
         pure_tuned_cfg = tuned[METHOD_PURE]
         memetic_tuned_cfg = tuned[METHOD_MEMETIC]
-        best_cx, best_mut = pure_tuned_cfg.crossover, pure_tuned_cfg.mutation
-    elif pure_tuned_cfg is not None and memetic_tuned_cfg is not None:
-        best_cx, best_mut = pure_tuned_cfg.crossover, pure_tuned_cfg.mutation
-    else:
-        p1_seeds = list(range(1, args.phase1_seeds + 1))
-        p1_rows = run_phase1_ablation(
-            p1_instances,
-            p1_seeds,
-            pop_size=args.pop_size,
-            generations=args.generations,
-            output_dir=args.output_dir,
-            show_progress=show_progress,
-            console=console,
-        )
-        best_cx, best_mut = select_best_operators(p1_rows)
-        console.print(
-            f"Phase 1 selected operators: crossover={best_cx}, mutation={best_mut}"
-        )
 
-    # Phase 2 on all 4 CVRPLIB + Recife road-network instance
+    # Phase 2 on all 3 CVRPLIB instances + held-out Recife road-network instance
     p2_instances = cvrplib_instances + recife_instances
     p2_seeds = list(range(1, args.phase2_seeds + 1))
     p2_rows, p2_histories = run_phase2_comparison(
         p2_instances,
         p2_seeds,
-        crossover=best_cx,
-        mutation=best_mut,
-        pop_size=args.pop_size,
         generations=args.generations,
-        local_search_rate=args.ls_rate,
         pure_ga_config=pure_tuned_cfg,
         memetic_ga_config=memetic_tuned_cfg,
         output_dir=args.output_dir,
