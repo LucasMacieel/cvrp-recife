@@ -134,6 +134,6 @@ Results are saved in `results/`:
 
 Click the map preview below to open the interactive Folium map ([`results/recife_map.html`](results/recife_map.html)) in your browser:
 
-[![Recife UBS/USF Routes Map](results/recife_map_preview.png)](https://lucasmacieel.github.io/cvrp-recife/results/recife_map.html)
+[![Recife UBS/USF Routes Map](results/best_solution_Recife-UBS-40-road.png)](https://lucasmacieel.github.io/cvrp-recife/results/recife_map.html)
 
 > [Open interactive map](https://lucasmacieel.github.io/cvrp-recife/results/recife_map.html) · [View source HTML](results/recife_map.html)

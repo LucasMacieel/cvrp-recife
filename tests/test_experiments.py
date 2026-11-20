@@ -16,6 +16,12 @@ from src.data.cvrplib_loader import load_cvrplib
 from src.data.recife_loader import load_recife
 from src.experiments.map_recife import _fetch_osrm_route_geometry, generate_recife_map
 from src.experiments.plots import (
+    _compute_padded_mercator_bounds,
+    _latlon_to_mercator,
+    _latlon_to_tile_xy,
+    _mercator_to_latlon,
+    _select_osm_zoom,
+    _tile_xy_to_mercator_bounds,
     plot_best_solution_routes,
     plot_comparative_boxplots,
     plot_convergence_curves,
@@ -130,6 +136,7 @@ def test_smoke_experiments_plots_and_recife_map(tmp_path: Path) -> None:
         recife_dist,
         tmp_path / f"best_solution_{inst_recife.name}.png",
         use_osrm=False,
+        use_basemap=False,
     )
     assert best_plot_path.exists()
     assert best_plot_path.stat().st_size > 1000
@@ -809,6 +816,7 @@ def test_plot_best_solution_routes_osrm_fallback_and_missing_coords(
         12.34,
         tmp_path / "best_osrm.png",
         use_osrm=True,
+        use_basemap=False,
     )
     assert called == 1
     assert osrm_png.exists()
@@ -827,6 +835,7 @@ def test_plot_best_solution_routes_osrm_fallback_and_missing_coords(
             12.34,
             tmp_path / "best_fallback.png",
             use_osrm=True,
+            use_basemap=False,
         )
     assert fallback_png.exists()
     assert fallback_png.stat().st_size > 1000
@@ -844,3 +853,123 @@ def test_plot_best_solution_routes_osrm_fallback_and_missing_coords(
             100.0,
             tmp_path / "missing_coords.png",
         )
+
+
+def test_web_mercator_projection_and_tile_grid_bounds() -> None:
+    # Round-trip projection for Recife CAF depot
+    lat, lon = -8.0598, -34.9225
+    mx, my = _latlon_to_mercator(lat, lon)
+    rt_lat, rt_lon = _mercator_to_latlon(mx, my)
+    assert np.isclose(rt_lat, lat, atol=1e-7)
+    assert np.isclose(rt_lon, lon, atol=1e-7)
+
+    # Tile containing (lat, lon) at zoom 13 has Mercator bounds containing (mx, my)
+    z = 13
+    tx, ty = _latlon_to_tile_xy(lat, lon, z)
+    t_mx_min, t_mx_max, t_my_min, t_my_max = _tile_xy_to_mercator_bounds(tx, ty, z)
+    assert t_mx_min <= mx <= t_mx_max
+    assert t_my_min <= my <= t_my_max
+
+    # Zoom selection respects max_tiles budget for Recife bounding box
+    inst_recife = load_recife("data/recife_ubs")
+    assert inst_recife.latlon is not None
+    bounds = _compute_padded_mercator_bounds(
+        inst_recife.latlon[:, 0], inst_recife.latlon[:, 1]
+    )
+    sel_z, x0, x1, y0, y1 = _select_osm_zoom(*bounds, max_tiles=25)
+    assert 1 <= sel_z <= 15
+    assert (x1 - x0 + 1) * (y1 - y0 + 1) <= 25
+
+
+def test_plot_best_solution_routes_basemap_and_fallback(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    import logging
+    from io import BytesIO
+
+    import requests as req_lib
+    from PIL import Image
+
+    inst_recife = load_recife("data/recife_ubs")
+    inst_cvrp = load_cvrplib("data/cvrplib/A-n32-k5.vrp")
+    routes = [[1, 2]]
+
+    buf = BytesIO()
+    Image.new("RGB", (256, 256), color=(230, 235, 240)).save(buf, format="PNG")
+    tile_png_bytes = buf.getvalue()
+
+    class _FakeTileResp:
+        def __init__(self, content: bytes) -> None:
+            self.content = content
+
+        def raise_for_status(self) -> None:
+            return None
+
+    tile_calls: list[tuple[str, dict]] = []
+
+    def _fake_tile_get(
+        self: req_lib.Session, url: str, timeout: float
+    ) -> _FakeTileResp:
+        tile_calls.append((url, dict(self.headers)))
+        return _FakeTileResp(tile_png_bytes)
+
+    monkeypatch.setattr("src.experiments.plots.requests.Session.get", _fake_tile_get)
+    basemap_png = plot_best_solution_routes(
+        inst_recife,
+        routes,
+        12.34,
+        tmp_path / "best_basemap.png",
+        use_osrm=False,
+        use_basemap=True,
+    )
+    assert basemap_png.exists()
+    assert basemap_png.stat().st_size > 1000
+    assert 1 <= len(tile_calls) <= 25
+    assert "User-Agent" in tile_calls[0][1]
+
+    # use_basemap=False and Euclidean coords perform zero tile requests
+    tile_calls.clear()
+    no_basemap_png = plot_best_solution_routes(
+        inst_recife,
+        routes,
+        12.34,
+        tmp_path / "best_no_basemap.png",
+        use_osrm=False,
+        use_basemap=False,
+    )
+    euclid_png = plot_best_solution_routes(
+        inst_cvrp,
+        [[1, 2]],
+        100.0,
+        tmp_path / "best_euclid.png",
+        use_osrm=False,
+        use_basemap=True,
+    )
+    assert no_basemap_png.exists()
+    assert euclid_png.exists()
+    assert len(tile_calls) == 0
+
+    # Tile fetch failure logs warning and falls back cleanly
+    def _fake_tile_fail(
+        self: req_lib.Session, url: str, timeout: float
+    ) -> _FakeTileResp:
+        raise req_lib.Timeout("tile server timed out")
+
+    monkeypatch.setattr("src.experiments.plots.requests.Session.get", _fake_tile_fail)
+    caplog.clear()
+    with caplog.at_level(logging.WARNING, logger="src.experiments.plots"):
+        fallback_png = plot_best_solution_routes(
+            inst_recife,
+            routes,
+            12.34,
+            tmp_path / "best_tile_fallback.png",
+            use_osrm=False,
+            use_basemap=True,
+        )
+    assert fallback_png.exists()
+    assert fallback_png.stat().st_size > 1000
+    assert any(
+        "falling back to plain coordinate plot" in rec.message for rec in caplog.records
+    )
