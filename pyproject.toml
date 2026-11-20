@@ -12,6 +12,7 @@ dependencies = [
     "requests>=2.31",
     "rich>=13.0",
     "optuna>=3.6",
+    "deap>=1.4",
 ]
 
 [dependency-groups]

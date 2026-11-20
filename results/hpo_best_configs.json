@@ -15,33 +15,33 @@
     "hpo_seed": 42
   },
   "Pure_GA": {
-    "best_objective": 27.34171,
-    "best_trial_number": 28,
+    "best_objective": 27.209947,
+    "best_trial_number": 29,
     "config": {
-      "pop_size": 110,
-      "crossover_rate": 0.753969,
-      "mutation_rate": 0.414728,
-      "tournament_k": 4,
+      "pop_size": 120,
+      "crossover_rate": 0.677836,
+      "mutation_rate": 0.379475,
+      "tournament_k": 5,
       "elite_size": 2,
-      "crossover": "PMX",
+      "crossover": "OX",
       "mutation": "Inversion",
       "memetic": false
     }
   },
   "Memetic_GA": {
-    "best_objective": 10.95284,
+    "best_objective": 10.690604,
     "best_trial_number": 17,
     "config": {
-      "pop_size": 90,
-      "crossover_rate": 0.97363,
-      "mutation_rate": 0.47555,
-      "tournament_k": 5,
-      "elite_size": 3,
-      "crossover": "PMX",
+      "pop_size": 110,
+      "crossover_rate": 0.825149,
+      "mutation_rate": 0.410824,
+      "tournament_k": 6,
+      "elite_size": 2,
+      "crossover": "OX",
       "mutation": "Inversion",
       "memetic": true,
-      "local_search_rate": 0.555198,
-      "local_search_max_passes": 15
+      "local_search_rate": 0.513344,
+      "local_search_max_passes": 5
     }
   }
 }

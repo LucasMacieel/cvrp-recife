@@ -20,9 +20,9 @@ cvrp-recife/
 │   ├── solver/
 │   │   ├── decoder.py          # Giant Tour decoder with greedy capacity-constrained Split
 │   │   ├── greedy.py           # Deterministic baseline (capacitated Nearest Neighbor)
-│   │   ├── operators.py        # Tournament, elitism, OX/PMX crossovers, and Swap/Inversion mutations
+│   │   ├── operators.py        # DEAP-backed OX/PMX crossovers and Swap/Inversion mutations
 │   │   ├── local_search.py     # Intra-route 2-opt local search (symmetric and asymmetric)
-│   │   └── genetic.py          # Pure GA and Lamarckian Memetic GA
+│   │   └── genetic.py          # DEAP-backed Pure GA and Lamarckian Memetic GA
 │   └── experiments/
 │       ├── runner.py           # Runner for Phase 1 (Bayesian HPO) -> Phase 2 (30-seed benchmarking)
 │       ├── hpo.py              # Standalone Optuna TPE hyperparameter optimization for Pure GA and Memetic GA

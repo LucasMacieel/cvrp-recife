@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import random
+
 import numpy as np
 import pytest
 
@@ -19,8 +21,6 @@ from src.solver.local_search import lamarckian_two_opt, two_opt_solution
 from src.solver.operators import (
     CROSSOVER_OPERATORS,
     MUTATION_OPERATORS,
-    select_elites,
-    tournament_selection,
 )
 
 
@@ -76,43 +76,51 @@ def test_greedy_baseline_toy_and_cvrplib() -> None:
     assert np.isclose(
         res.distance, total_distance(res.routes, inst.distance_matrix, inst.depot)
     )
+    assert inst.optimal_value is not None
     assert res.distance >= inst.optimal_value
 
 
 @pytest.mark.parametrize("cx_name", ["OX", "PMX"])
 @pytest.mark.parametrize("mut_name", ["Swap", "Inversion"])
 def test_operators_preserve_valid_permutations(cx_name: str, mut_name: str) -> None:
-    rng = np.random.default_rng(7)
-    base = np.arange(1, 32, dtype=np.int64)
-    expected = set(base.tolist())
+    py_rng = random.Random(7)
+    base = list(range(31))
+    expected = set(base)
     cx_fn = CROSSOVER_OPERATORS[cx_name]
     mut_fn = MUTATION_OPERATORS[mut_name]
 
     for _ in range(100):
-        p1 = rng.permutation(base)
-        p2 = rng.permutation(base)
-        c1, c2 = cx_fn(p1, p2, rng)
-        m1 = mut_fn(c1, rng)
-        m2 = mut_fn(c2, rng)
+        p1 = py_rng.sample(base, len(base))
+        p2 = py_rng.sample(base, len(base))
+        c1, c2 = cx_fn(p1, p2)
+        (m1,) = mut_fn(c1[:])
+        (m2,) = mut_fn(c2[:])
         for child in (c1, c2, m1, m2):
+            assert isinstance(child, list)
             assert len(child) == len(base)
-            assert set(child.tolist()) == expected
+            assert set(child) == expected
 
 
-def test_tournament_and_elitism() -> None:
-    rng = np.random.default_rng(0)
-    pop = np.array([[1, 2, 3], [3, 2, 1], [2, 1, 3], [2, 3, 1]])
-    fit = np.array([10.0, 5.0, 8.0, 12.0])
-    elites = select_elites(pop, fit, elite_size=2)
-    assert np.array_equal(elites[0], [3, 2, 1])
-    assert np.array_equal(elites[1], [2, 1, 3])
-    picked = tournament_selection(fit, k=4, rng=rng)
-    assert picked == 1
+@pytest.mark.parametrize("cx_name", ["OX", "PMX"])
+@pytest.mark.parametrize("mut_name", ["Swap", "Inversion"])
+@pytest.mark.parametrize("n", [0, 1])
+def test_operators_short_permutations(cx_name: str, mut_name: str, n: int) -> None:
+    cx_fn = CROSSOVER_OPERATORS[cx_name]
+    mut_fn = MUTATION_OPERATORS[mut_name]
+    p1 = list(range(n))
+    p2 = list(range(n))
+    c1, c2 = cx_fn(p1, p2)
+    assert c1 == list(range(n))
+    assert c2 == list(range(n))
+    (m1,) = mut_fn(c1)
+    assert m1 == list(range(n))
 
 
 def test_genetic_reproducibility_and_convergence() -> None:
     inst = load_cvrplib("data/cvrplib/A-n32-k5.vrp")
-    cfg = GAConfig(pop_size=20, generations=25, crossover="OX", mutation="Inversion", seed=99)
+    cfg = GAConfig(
+        pop_size=20, generations=25, crossover="OX", mutation="Inversion", seed=99
+    )
 
     r1 = solve_genetic(inst, cfg)
     r2 = solve_genetic(inst, cfg)
@@ -121,8 +129,11 @@ def test_genetic_reproducibility_and_convergence() -> None:
     assert r1.distance == r2.distance
     assert r1.routes == r2.routes
     assert r1.history == r2.history
+    assert r1.history is not None
     assert len(r1.history) == 26
-    assert all(r1.history[i] >= r1.history[i + 1] - 1e-12 for i in range(len(r1.history) - 1))
+    assert all(
+        r1.history[i] >= r1.history[i + 1] - 1e-12 for i in range(len(r1.history) - 1)
+    )
 
 
 def test_two_opt_never_worsens_symmetric_and_asymmetric() -> None:
@@ -176,3 +187,70 @@ def test_memetic_genetic_solver() -> None:
     validate_routes(res.routes, inst)
     assert res.history is not None and len(res.history) == 16
     assert res.distance <= res.history[0] + 1e-12
+
+
+def test_genetic_isolates_global_random_state() -> None:
+    inst = _toy_instance()
+    cfg = GAConfig(pop_size=10, generations=5, seed=77)
+
+    random.seed(12345)
+    expected_stream = [random.random() for _ in range(10)]
+
+    random.seed(12345)
+    solve_genetic(inst, cfg)
+    actual_stream = [random.random() for _ in range(10)]
+
+    assert actual_stream == expected_stream
+
+
+@pytest.mark.parametrize(
+    ("cx_name", "mut_name"),
+    [("OX", "Swap"), ("PMX", "Inversion")],
+)
+def test_genetic_nonzero_depot_index(cx_name: str, mut_name: str) -> None:
+    coords = np.array([[1.0, 0.0], [2.0, 0.0], [0.0, 0.0], [0.0, 3.0], [0.0, 4.0]])
+    diff = coords[:, None, :] - coords[None, :, :]
+    dist = np.hypot(diff[:, :, 0], diff[:, :, 1])
+    inst = CVRPInstance(
+        name="nonzero-depot-5",
+        distance_matrix=dist,
+        demands=np.array([3, 3, 0, 2, 2]),
+        capacity=5,
+        depot=2,
+        coords=coords,
+    )
+    cfg = GAConfig(
+        pop_size=12,
+        generations=10,
+        crossover=cx_name,
+        mutation=mut_name,
+        memetic=True,
+        seed=11,
+    )
+    res = solve_genetic(inst, cfg)
+    validate_routes(res.routes, inst)
+    assert res.permutation is not None
+    assert set(res.permutation.tolist()) == {0, 1, 3, 4}
+
+
+@pytest.mark.parametrize(
+    ("pop_size", "elite_size"),
+    [(10, 0), (11, 2), (10, 15)],
+)
+def test_genetic_elite_size_edge_cases(pop_size: int, elite_size: int) -> None:
+    inst = _toy_instance()
+    cfg = GAConfig(
+        pop_size=pop_size,
+        generations=8,
+        elite_size=elite_size,
+        seed=5,
+    )
+    res = solve_genetic(inst, cfg)
+    validate_routes(res.routes, inst)
+    assert res.history is not None and len(res.history) == 9
+    assert res.distance <= min(res.history) + 1e-12
+    if elite_size >= 1:
+        assert all(
+            res.history[i] >= res.history[i + 1] - 1e-12
+            for i in range(len(res.history) - 1)
+        )
