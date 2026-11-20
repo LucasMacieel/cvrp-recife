@@ -15,7 +15,11 @@ from rich.console import Console
 from src.data.cvrplib_loader import load_cvrplib
 from src.data.recife_loader import load_recife
 from src.experiments.map_recife import _fetch_osrm_route_geometry, generate_recife_map
-from src.experiments.plots import plot_comparative_boxplots, plot_convergence_curves
+from src.experiments.plots import (
+    plot_best_solution_routes,
+    plot_comparative_boxplots,
+    plot_convergence_curves,
+)
 from src.experiments.progress import (
     create_experiment_progress,
     format_run_detail,
@@ -116,7 +120,31 @@ def test_smoke_experiments_plots_and_recife_map(tmp_path: Path) -> None:
     best_sols = json.loads(
         (tmp_path / "best_solutions.json").read_text(encoding="utf-8")
     )
-    recife_routes = best_sols[inst_recife.name]["Memetic_GA"]["routes"]
+    recife_best = best_sols[inst_recife.name]["Memetic_GA"]
+    recife_routes = recife_best["routes"]
+    recife_dist = float(recife_best["distance"])
+
+    best_plot_path = plot_best_solution_routes(
+        inst_recife,
+        recife_routes,
+        recife_dist,
+        tmp_path / f"best_solution_{inst_recife.name}.png",
+        use_osrm=False,
+    )
+    assert best_plot_path.exists()
+    assert best_plot_path.stat().st_size > 1000
+
+    cvrp_best = best_sols[inst_cvrp.name]["Memetic_GA"]
+    cvrp_plot_path = plot_best_solution_routes(
+        inst_cvrp,
+        cvrp_best["routes"],
+        float(cvrp_best["distance"]),
+        tmp_path / f"best_solution_{inst_cvrp.name}.png",
+        use_osrm=False,
+    )
+    assert cvrp_plot_path.exists()
+    assert cvrp_plot_path.stat().st_size > 1000
+
     map_path = generate_recife_map(
         inst_recife, recife_routes, tmp_path / "recife_map.html", use_osrm=False
     )
@@ -454,11 +482,17 @@ def test_cli_no_progress_flag_and_post_processing_progress(
         show_progress=False,
     )
 
-    # Avoid network calls during map generation in unit test
+    # Avoid network calls during map and route-plot generation in unit test
     monkeypatch.setattr(
         "src.experiments.runner.generate_recife_map",
         lambda inst, routes, out_path: (
             out_path.write_text("<html></html>", encoding="utf-8") or out_path
+        ),
+    )
+    monkeypatch.setattr(
+        "src.experiments.runner.plot_best_solution_routes",
+        lambda inst, routes, dist, out_path: (
+            out_path.write_bytes(b"\x89PNG") and out_path
         ),
     )
 
@@ -474,7 +508,9 @@ def test_cli_no_progress_flag_and_post_processing_progress(
     )
     out_on = buf_on.getvalue()
     assert "Post-processing" in out_on
+    assert "4/4" in out_on
     assert "Generating Recife HTML map" in out_on
+    assert (tmp_path / f"best_solution_{inst_recife.name}.png").exists()
 
     buf_off = StringIO()
     console_off = Console(file=buf_off, force_terminal=False, width=160)
@@ -488,6 +524,7 @@ def test_cli_no_progress_flag_and_post_processing_progress(
     )
     assert buf_off.getvalue() == ""
     assert (tmp_path / "recife_map.html").exists()
+    assert (tmp_path / f"best_solution_{inst_recife.name}.png").exists()
 
 
 def test_phase2_with_method_specific_tuned_configs(tmp_path: Path) -> None:
@@ -714,3 +751,96 @@ def test_runner_cli_tune_and_tuned_config_flags(
     assert not (out_inline / "phase1_ablation.csv").exists()
     assert (out_inline / "hpo_best_configs.json").is_file()
     assert (out_inline / "phase2_results.csv").is_file()
+
+
+def test_plot_best_solution_routes_osrm_fallback_and_missing_coords(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    import logging
+
+    import requests as req_lib
+
+    inst_recife = load_recife("data/recife_ubs")
+    inst_cvrp = load_cvrplib("data/cvrplib/A-n32-k5.vrp")
+    routes = [[1, 2]]
+    assert inst_recife.latlon is not None
+
+    # 1. use_osrm=True queries OSRM and renders static PNG
+    called = 0
+
+    class _FakeResp:
+        def raise_for_status(self) -> None:
+            return None
+
+        def json(self) -> dict:
+            assert inst_recife.latlon is not None
+            depot_lat, depot_lon = inst_recife.latlon[0]
+            s1_lat, s1_lon = inst_recife.latlon[1]
+            s2_lat, s2_lon = inst_recife.latlon[2]
+            return {
+                "code": "Ok",
+                "routes": [
+                    {
+                        "geometry": {
+                            "type": "LineString",
+                            "coordinates": [
+                                [float(depot_lon), float(depot_lat)],
+                                [-34.918456, -8.057123],
+                                [float(s1_lon), float(s1_lat)],
+                                [float(s2_lon), float(s2_lat)],
+                                [float(depot_lon), float(depot_lat)],
+                            ],
+                        }
+                    }
+                ],
+            }
+
+    def _fake_get_ok(url: str, params: dict, timeout: float) -> _FakeResp:
+        nonlocal called
+        called += 1
+        return _FakeResp()
+
+    monkeypatch.setattr("src.experiments.map_recife.requests.get", _fake_get_ok)
+    osrm_png = plot_best_solution_routes(
+        inst_recife,
+        routes,
+        12.34,
+        tmp_path / "best_osrm.png",
+        use_osrm=True,
+    )
+    assert called == 1
+    assert osrm_png.exists()
+    assert osrm_png.stat().st_size > 1000
+
+    # 2. OSRM failure logs a warning and falls back to straight-line segments
+    def _fake_get_fail(url: str, params: dict, timeout: float) -> _FakeResp:
+        raise req_lib.Timeout("timed out")
+
+    monkeypatch.setattr("src.experiments.map_recife.requests.get", _fake_get_fail)
+    caplog.clear()
+    with caplog.at_level(logging.WARNING, logger="src.experiments.map_recife"):
+        fallback_png = plot_best_solution_routes(
+            inst_recife,
+            routes,
+            12.34,
+            tmp_path / "best_fallback.png",
+            use_osrm=True,
+        )
+    assert fallback_png.exists()
+    assert fallback_png.stat().st_size > 1000
+    assert any(
+        "falling back to straight-line segments" in rec.message
+        for rec in caplog.records
+    )
+
+    # 3. Missing both latlon and coords raises ValueError
+    no_coords_inst = replace(inst_cvrp, coords=None, latlon=None)
+    with pytest.raises(ValueError, match="latlon or coords"):
+        plot_best_solution_routes(
+            no_coords_inst,
+            routes,
+            100.0,
+            tmp_path / "missing_coords.png",
+        )

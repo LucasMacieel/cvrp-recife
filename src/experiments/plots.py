@@ -1,8 +1,9 @@
-"""Analytical plots (convergence curves and comparative boxplots) for CVRP."""
+"""Analytical plots (convergence curves, comparative boxplots, and best-solution routes) for CVRP."""
 
 from __future__ import annotations
 
 from collections import defaultdict
+from collections.abc import Sequence
 from pathlib import Path
 
 import matplotlib
@@ -10,6 +11,9 @@ import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import numpy as np
+
+from src.data.models import CVRPInstance
+from src.experiments.map_recife import _fetch_osrm_route_geometry
 
 
 def plot_convergence_curves(
@@ -121,3 +125,129 @@ def plot_comparative_boxplots(
         saved.append(path)
 
     return saved
+
+
+def plot_best_solution_routes(
+    instance: CVRPInstance,
+    routes: Sequence[Sequence[int]],
+    distance: float,
+    output_path: str | Path,
+    *,
+    method_label: str = "Memetic GA",
+    use_osrm: bool = True,
+) -> Path:
+    """Plot a static Matplotlib visualization of CVRP routes (road-snapped when latlon+OSRM)."""
+    is_geo = instance.latlon is not None
+    if is_geo:
+        coords_arr = instance.latlon
+        assert coords_arr is not None
+        xs_all = coords_arr[:, 1]  # longitude
+        ys_all = coords_arr[:, 0]  # latitude
+    elif instance.coords is not None:
+        coords_arr = instance.coords
+        xs_all = coords_arr[:, 0]
+        ys_all = coords_arr[:, 1]
+    else:
+        raise ValueError(
+            "Instance must provide either latlon or coords to plot solution routes."
+        )
+
+    depot = instance.depot
+    depot_x = float(xs_all[depot])
+    depot_y = float(ys_all[depot])
+
+    fig, ax = plt.subplots(figsize=(7.5, 6.2))
+    cmap = plt.get_cmap("tab10")
+
+    for v_idx, route in enumerate(routes):
+        color = cmap(v_idx % 10)
+        if is_geo:
+            waypoints = [[depot_y, depot_x]]
+            for node in route:
+                waypoints.append([float(ys_all[node]), float(xs_all[node])])
+            waypoints.append([depot_y, depot_x])
+
+            poly = waypoints
+            if use_osrm and route:
+                road_coords = _fetch_osrm_route_geometry(waypoints)
+                if road_coords is not None:
+                    poly = road_coords
+            line_xs = [pt[1] for pt in poly]
+            line_ys = [pt[0] for pt in poly]
+        else:
+            node_seq = [depot, *route, depot]
+            line_xs = [float(xs_all[n]) for n in node_seq]
+            line_ys = [float(ys_all[n]) for n in node_seq]
+
+        ax.plot(
+            line_xs,
+            line_ys,
+            color=color,
+            linewidth=1.8,
+            alpha=0.9,
+            label=f"Route {v_idx + 1} ({len(route)} units)",
+            zorder=3,
+        )
+        if route:
+            cust_xs = [float(xs_all[n]) for n in route]
+            cust_ys = [float(ys_all[n]) for n in route]
+            ax.scatter(
+                cust_xs,
+                cust_ys,
+                color=color,
+                edgecolors="black",
+                linewidths=0.8,
+                s=55,
+                zorder=4,
+            )
+
+    depot_label = "Depot"
+    if instance.node_names:
+        raw_name = instance.node_names[depot]
+        if "CAF Recife" in raw_name:
+            depot_label = "Depot (CAF Recife)"
+        else:
+            depot_label = f"Depot ({raw_name})"
+
+    ax.scatter(
+        [depot_x],
+        [depot_y],
+        marker="*",
+        color="red",
+        edgecolors="black",
+        linewidths=1.0,
+        s=300,
+        label=depot_label,
+        zorder=6,
+    )
+
+    if is_geo:
+        title = (
+            f"Best {method_label} Solution — {instance.name} "
+            f"({distance:.2f} km, {len(routes)} routes)"
+        )
+        ax.set_xlabel("Longitude (°)")
+        ax.set_ylabel("Latitude (°)")
+    else:
+        title = (
+            f"Best {method_label} Solution — {instance.name} "
+            f"({distance:.1f}, {len(routes)} routes)"
+        )
+        ax.set_xlabel("X")
+        ax.set_ylabel("Y")
+
+    ax.set_title(title, fontweight="bold")
+    ax.set_aspect("equal", adjustable="datalim")
+    ax.grid(True, linestyle="--", alpha=0.4)
+    ax.legend(
+        loc="upper center",
+        bbox_to_anchor=(0.5, -0.12),
+        ncol=3,
+        frameon=True,
+    )
+
+    out = Path(output_path)
+    out.parent.mkdir(parents=True, exist_ok=True)
+    fig.savefig(out, dpi=300, bbox_inches="tight")
+    plt.close(fig)
+    return out

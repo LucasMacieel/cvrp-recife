@@ -28,7 +28,7 @@ cvrp-recife/
 │       ├── hpo.py              # Standalone Optuna TPE hyperparameter optimization for Pure GA and Memetic GA
 │       ├── progress.py         # Rich progress bars and summary tables for experiments and HPO
 │       ├── stats.py            # Aggregation, gap %, and Wilcoxon / Mann-Whitney tests
-│       ├── plots.py            # Convergence curves and comparative boxplots (.png)
+│       ├── plots.py            # Convergence curves, comparative boxplots, and best-solution route plots (.png)
 │       └── map_recife.py       # Interactive Folium map of routes in Recife (.html)
 ├── tests/                      # Unit tests and smoke tests suite (pytest)
 └── results/                    # HPO configs/trials, Phase 2 CSVs, PNG charts, and recife_map.html
@@ -87,7 +87,7 @@ The experimental pipeline follows a leakage-free **Phase 1 (Bayesian HPO) → Ph
    - **Training set (`A-n32-k5`, `A-n45-k6`, `A-n60-k9`):** Three symmetric Euclidean CVRPLIB instances spanning 32–60 nodes (bracketing Recife's 41 nodes). Default budget: `--hpo-trials 30`, `--hpo-seeds 3`, `--hpo-generations 100`, `--hpo-seed 42`.
    - **Held-out split & domain shift:** `Recife-UBS-40-road` (41 nodes, asymmetric OSRM road network) is strictly held out from Phase 1 tuning. Evaluating symmetric-tuned configs on the asymmetric urban road network tests out-of-distribution generalization with zero data leakage.
 2. **Phase 2 (Benchmarking & Statistical Evaluation):** Runs across all 4 instances (`A-n32-k5`, `A-n45-k6`, `A-n60-k9`, and held-out `Recife-UBS-40-road`), comparing the deterministic `Greedy` baseline (`seed=0`) against the Phase 1 tuned `Pure_GA` and `Memetic_GA` for `--phase2-seeds` runs (default `30`) with `--generations` (default `150`). Statistical comparison (`phase2_stats_tests.csv`) runs two-sided Wilcoxon signed-rank (paired by seed) and Mann-Whitney U tests between `Pure_GA` and `Memetic_GA` (`significant_005` when `wilcoxon_p < 0.05`).
-3. **Charts & Map:** Generates convergence curves, comparative boxplots, and the interactive Folium map (`recife_map.html`) from the best `Memetic_GA` routes on `Recife-UBS-40-road` (querying OSRM for road-snapped polylines with straight-line fallback if offline).
+3. **Charts & Map:** Generates convergence curves, comparative boxplots, the static best-solution route plot (`best_solution_Recife-UBS-40-road.png`), and the interactive Folium map (`recife_map.html`) from the best `Memetic_GA` routes on `Recife-UBS-40-road` (querying OSRM for road-snapped polylines with straight-line fallback if offline).
 
 #### Option A: 1-step full pipeline (inline Phase 1 HPO → Phase 2)
 
@@ -115,7 +115,7 @@ Results are saved in `results/`:
 - `hpo_best_configs.json`, `hpo_trials_pure_ga.csv`, `hpo_trials_memetic_ga.csv`
 - `phase2_results.csv`, `phase2_summary.csv`, `phase2_stats_tests.csv`
 - `phase2_histories.json`, `best_solutions.json`
-- `convergence_*.png`, `boxplot_*.png`
+- `convergence_*.png`, `boxplot_*.png`, `best_solution_*.png`
 - `recife_map.html`
 
 ## Output Format & Node Index Mapping (`best_solutions.json`)

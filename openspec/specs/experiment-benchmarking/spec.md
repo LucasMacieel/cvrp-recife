@@ -25,19 +25,23 @@ The system SHALL aggregate results by method and instance computing mean, standa
 - **THEN** the system computes the percentage gap as `((distance_obtained - optimal) / optimal) * 100` in exported tables and summaries
 
 ### Requirement: Analytical chart and interactive Recife map generation
-The system SHALL generate static visual artifacts of convergence curves and result distributions (boxplots), as well as an interactive HTML map displaying the depot, UBSs/Polyclinics, and vehicle routes in the Recife/PE scenario. When rendering vehicle routes on the interactive Recife HTML map, the system SHALL query road-network driving geometry for each vehicle's ordered stop sequence (starting and ending at the depot) so that route polylines follow actual streets, and SHALL automatically fall back to straight-line node-to-node coordinate segments if road geometry retrieval is disabled, times out, or fails.
+The system SHALL generate static visual artifacts of convergence curves, result distributions (boxplots), and best-solution vehicle routes (`best_solution_<instance>.png`), as well as an interactive HTML map displaying the depot, UBSs/USFs, and vehicle routes in the Recife/PE scenario. Static route plots SHALL use English labels, display each vehicle route in a distinct color with unit counts and a highlighted depot marker, and support both geographic (latitude/longitude) and Euclidean coordinate instances. When rendering geographic vehicle routes on the interactive Recife HTML map or on the static best-solution route plot, the system SHALL query road-network driving geometry for each vehicle's ordered stop sequence (starting and ending at the depot) so that route polylines follow actual streets, and SHALL automatically fall back to straight-line node-to-node coordinate segments if road geometry retrieval is disabled, times out, or fails.
 
 #### Scenario: Recife scenario visualization export
 - **WHEN** the Recife/PE scenario experiment finishes
-- **THEN** the system saves convergence/comparison chart files and an interactive HTML file containing distinct markers for depot and health units and color-coded routes per vehicle
+- **THEN** the system saves convergence/comparison chart files, a static best-solution route image (`best_solution_Recife-UBS-40-road.png`) for the best Memetic GA solution, and an interactive HTML file containing distinct markers for depot and health units and color-coded routes per vehicle
+
+#### Scenario: Static best-solution route plot for geographic and Euclidean instances
+- **WHEN** a static best-solution route plot is generated for an instance providing geographic coordinates (`latlon`) or Euclidean coordinates (`coords`)
+- **THEN** the system saves a high-resolution PNG image displaying the depot, customer nodes, color-coded vehicle routes, total distance, route count, and a legend with per-route unit counts in English, raising a clear error if neither coordinate set is available
 
 #### Scenario: Road-snapped route polyline rendering
-- **WHEN** the interactive Recife map is generated and the road-routing service returns a valid driving geometry for a vehicle route
-- **THEN** the route polyline rendered in the HTML map follows the returned street-level coordinates from the depot through each assigned health unit and back to the depot
+- **WHEN** the interactive Recife map or static geographic best-solution route plot is generated and the road-routing service returns a valid driving geometry for a vehicle route
+- **THEN** the rendered route polyline follows the returned street-level coordinates from the depot through each assigned health unit and back to the depot
 
 #### Scenario: Graceful fallback to straight-line route segments
-- **WHEN** the interactive Recife map is generated while offline, when the road-routing service returns an error or times out, or when road-geometry lookup is disabled
-- **THEN** the system logs a warning (if a request failed) and renders the affected vehicle route polyline using straight-line segments connecting consecutive stop coordinates without aborting map generation
+- **WHEN** the interactive Recife map or static geographic best-solution route plot is generated while offline, when the road-routing service returns an error or times out, or when road-geometry lookup is disabled
+- **THEN** the system logs a warning (if a request failed) and renders the affected vehicle route polyline using straight-line segments connecting consecutive stop coordinates without aborting artifact generation
 
 ### Requirement: Phase 1 (Bayesian HPO) to Phase 2 benchmarking workflow
 The experiment runner SHALL use Bayesian hyperparameter optimization (Optuna TPE) as Phase 1 in the Phase 1 → Phase 2 campaign, replacing Phase 1 operator ablation. Users SHALL either load pre-computed Phase 1 HPO results via `--tuned-config <path>` or run Phase 1 HPO inline before Phase 2 on `A-n32-k5`, `A-n45-k6`, and `A-n60-k9`, keeping `Recife-UBS-40-road` strictly held out from Phase 1.
@@ -62,8 +66,8 @@ The experiment runner SHALL display live progress indicators across Phase 1 (inl
 - **THEN** the runner updates a live progress display after each run showing the current phase, completed/total run count and percentage, elapsed time and ETA, current instance, method and operator pair, seed progress (`i/N`), and latest/best distance (plus percentage gap when the instance defines a known optimum)
 
 #### Scenario: Post-processing progress feedback
-- **WHEN** Phase 2 completes and the runner generates convergence curves, comparative boxplots, and the interactive Recife HTML map
-- **THEN** the runner displays progress status for each post-processing step and prints a final completion summary indicating the output directory
+- **WHEN** Phase 2 completes and the runner generates convergence curves, comparative boxplots, the static best-solution Recife route plot, and the interactive Recife HTML map
+- **THEN** the runner displays progress status for each of the four post-processing steps and prints a final completion summary indicating the output directory
 
 #### Scenario: End-of-phase summaries
 - **WHEN** Phase 1 HPO finishes and when Phase 2 finishes benchmarking

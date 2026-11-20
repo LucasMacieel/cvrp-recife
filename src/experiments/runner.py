@@ -19,7 +19,11 @@ from src.experiments.hpo import (
     run_hpo_suite,
 )
 from src.experiments.map_recife import generate_recife_map
-from src.experiments.plots import plot_comparative_boxplots, plot_convergence_curves
+from src.experiments.plots import (
+    plot_best_solution_routes,
+    plot_comparative_boxplots,
+    plot_convergence_curves,
+)
 from src.experiments.progress import (
     create_experiment_progress,
     format_run_detail,
@@ -311,12 +315,14 @@ def run_post_processing(
     show_progress: bool = True,
     console: Console | None = None,
 ) -> None:
-    """Generate convergence plots, comparative boxplots, and Recife HTML map."""
+    """Generate convergence plots, comparative boxplots, best-solution route plot, and Recife HTML map."""
     active_console = console or Console()
     best_sols = json.loads(
         (out_dir / "best_solutions.json").read_text(encoding="utf-8")
     )
-    recife_routes = best_sols[recife_road.name]["Memetic_GA"]["routes"]
+    recife_best = best_sols[recife_road.name]["Memetic_GA"]
+    recife_routes = recife_best["routes"]
+    recife_dist = float(recife_best["distance"])
 
     steps = [
         (
@@ -326,6 +332,15 @@ def run_post_processing(
         (
             "Plotting comparative boxplots",
             lambda: plot_comparative_boxplots(p2_rows, out_dir),
+        ),
+        (
+            "Plotting best Recife routes",
+            lambda: plot_best_solution_routes(
+                recife_road,
+                recife_routes,
+                recife_dist,
+                out_dir / f"best_solution_{recife_road.name}.png",
+            ),
         ),
         (
             "Generating Recife HTML map",
