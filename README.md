@@ -10,7 +10,8 @@ cvrp-recife/
 │   ├── cvrplib/          # Classical instances (.vrp): A-n32-k5, A-n45-k6, A-n60-k9
 │   └── recife_ubs/       # Static dataset of 40 UBSs/USFs + depot (JSON + road distance matrix .npy)
 ├── scripts/
-│   └── prepare_recife_data.py  # Consolidation of Recife Open Data + OSRM road matrix
+│   ├── prepare_recife_data.py  # Consolidation of Recife Open Data + OSRM road matrix
+│   └── solve_recife_exact.py   # Offline exact ACVRP solver (OR-Tools CP-SAT, optional `exact` group)
 ├── src/
 │   ├── data/
 │   │   ├── models.py           # CVRPInstance dataclass and integrity validations
@@ -66,7 +67,17 @@ The static dataset consolidates 40 primary care units (**UBS** and **USF** — *
 uv run scripts/prepare_recife_data.py
 ```
 
-Optional CLI flags: `--output-dir`, `--d-min`, `--d-max`, `--capacity`, `--stock-csv`. Queries Recife Open Data (unless `--stock-csv` is provided) and the public OSRM API (`router.project-osrm.org`) for driving distances, failing fast with `RuntimeError` if OSRM is unavailable or returns unreachable cells.
+Optional CLI flags: `--output-dir`, `--d-min`, `--d-max`, `--capacity`, `--stock-csv`. Queries Recife Open Data (unless `--stock-csv` is provided) and the public OSRM API (`router.project-osrm.org`) for driving distances, failing fast with `RuntimeError` if OSRM is unavailable or returns unreachable cells. Note that regenerating `recife_ubs.json` via `prepare_recife_data.py` clears any previously certified `optimal_value` and `exact_solution` metadata so stale optima are never reused on updated road matrices.
+
+### 2b. Optional offline exact optimum certification (Recife/PE)
+
+`Recife-UBS-40-road` ships with a certified `optimal_value` and `exact_solution` provenance record in [`data/recife_ubs/recife_ubs.json`](data/recife_ubs/recife_ubs.json). To reproduce or re-certify the global optimum offline (using Google OR-Tools CP-SAT from the optional `exact` dependency group):
+
+```bash
+uv run --group exact scripts/solve_recife_exact.py
+```
+
+Optional CLI flags (`uv run --group exact scripts/solve_recife_exact.py --help`): `--data-dir`, `--time-limit`, `--upper-bound`, `--skip-self-check`, `--dry-run`. The script verifies `A-n32-k5 == 784.0` before solving `Recife-UBS-40-road`, validates all routes against `validate_routes()` and `total_distance()`, and records a SHA-256 fingerprint of `distance_matrix_road.npy`.
 
 ### 3. Experimental Methodology: Phase 1 (Bayesian HPO) → Phase 2 (Benchmarking & Statistical Evaluation)
 

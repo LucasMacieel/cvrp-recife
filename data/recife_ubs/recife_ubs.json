@@ -555,5 +555,77 @@
       "total_items": 208,
       "demand_match_method": "us_code"
     }
-  ]
+  ],
+  "optimal_value": 171.9398,
+  "exact_solution": {
+    "status": "optimal",
+    "solver": "OR-Tools CP-SAT (AddMultipleCircuit)",
+    "solver_version": "9.15.6755",
+    "distance": 171.9398,
+    "solver_objective": 171.9398,
+    "dual_lower_bound": 171.9398,
+    "gap_pct": 0.0,
+    "num_vehicles": 8,
+    "routes": [
+      [
+        8,
+        5,
+        3,
+        4,
+        37
+      ],
+      [
+        9,
+        38,
+        10
+      ],
+      [
+        11,
+        31,
+        25,
+        6,
+        7,
+        26
+      ],
+      [
+        14,
+        33,
+        27,
+        39
+      ],
+      [
+        15,
+        17,
+        34,
+        18,
+        12,
+        13
+      ],
+      [
+        16,
+        32,
+        23,
+        35
+      ],
+      [
+        19,
+        22,
+        21,
+        28,
+        20,
+        40
+      ],
+      [
+        24,
+        2,
+        30,
+        36,
+        29,
+        1
+      ]
+    ],
+    "runtime_seconds": 57.2611,
+    "distance_matrix_sha256": "98e6394a5095a749c8b23d7935c51369b9eab294b200e3363177b44c2b00ee17",
+    "solved_at_utc": "2026-11-20T02:19:12.816622+00:00"
+  }
 }

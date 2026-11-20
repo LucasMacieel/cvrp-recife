@@ -18,6 +18,9 @@ dependencies = [
 dev = [
     "pytest>=7.4",
 ]
+exact = [
+    "ortools>=9.11",
+]
 
 [tool.uv]
 package = false

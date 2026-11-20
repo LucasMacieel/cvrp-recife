@@ -38,6 +38,8 @@ def load_recife(
     node_names = [str(n["name"]) for n in nodes]
     capacity = int(payload["capacity"])
     depot = int(payload.get("depot", 0))
+    raw_optimal = payload.get("optimal_value")
+    optimal_value = float(raw_optimal) if raw_optimal is not None else None
     dist_matrix = np.load(road_path)
 
     return CVRPInstance(
@@ -47,5 +49,6 @@ def load_recife(
         capacity=capacity,
         depot=depot,
         latlon=latlon,
+        optimal_value=optimal_value,
         node_names=node_names,
     )

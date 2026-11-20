@@ -136,6 +136,7 @@ def test_load_recife_road_only() -> None:
     assert road.is_symmetric is False
     assert road.latlon is not None and road.latlon.shape == (41, 2)
     assert road.node_names is not None and len(road.node_names) == 41
+    assert road.optimal_value == pytest.approx(171.9398)
 
 
 def test_load_recife_missing_road_matrix_raises(tmp_path: Path) -> None:
@@ -218,3 +219,79 @@ def test_load_recife_enriched_demand_metadata_offline(tmp_path: Path) -> None:
     assert inst.demands[inst.depot] == 0
     assert np.all((inst.demands[1:] >= 1) & (inst.demands[1:] <= inst.capacity))
     assert list(inst.demands) == [0, 10, 40]
+
+
+def _write_minimal_recife_fixture(
+    tmp_path: Path, extra_payload: dict | None = None
+) -> None:
+    import json
+
+    payload = {
+        "name": "Recife-Opt-Test",
+        "capacity": 100,
+        "depot": 0,
+        "nodes": [
+            {
+                "id": "DEPOT",
+                "name": "CAF",
+                "type": "DEPOT",
+                "lat": -8.06,
+                "lon": -34.92,
+                "demand": 0,
+            },
+            {
+                "id": "U1",
+                "name": "UBS 1",
+                "type": "UBS",
+                "lat": -8.05,
+                "lon": -34.88,
+                "demand": 15,
+            },
+            {
+                "id": "U2",
+                "name": "UBS 2",
+                "type": "UBS",
+                "lat": -8.04,
+                "lon": -34.90,
+                "demand": 25,
+            },
+        ],
+    }
+    if extra_payload:
+        payload.update(extra_payload)
+    (tmp_path / "recife_ubs.json").write_text(json.dumps(payload), encoding="utf-8")
+    road_matrix = np.array(
+        [
+            [0.0, 5.2, 3.8],
+            [5.4, 0.0, 2.7],
+            [3.6, 2.9, 0.0],
+        ],
+        dtype=np.float64,
+    )
+    np.save(tmp_path / "distance_matrix_road.npy", road_matrix)
+
+
+def test_load_recife_with_positive_optimal_value(tmp_path: Path) -> None:
+    _write_minimal_recife_fixture(tmp_path, {"optimal_value": 12.345})
+    inst = load_recife(tmp_path)
+    assert inst.optimal_value == pytest.approx(12.345)
+    assert isinstance(inst.optimal_value, float)
+
+
+def test_load_recife_without_optimal_value(tmp_path: Path) -> None:
+    _write_minimal_recife_fixture(tmp_path)
+    inst_omitted = load_recife(tmp_path)
+    assert inst_omitted.optimal_value is None
+
+    _write_minimal_recife_fixture(tmp_path, {"optimal_value": None})
+    inst_null = load_recife(tmp_path)
+    assert inst_null.optimal_value is None
+
+
+@pytest.mark.parametrize("bad_optimal", [0, 0.0, -10.5])
+def test_load_recife_rejects_non_positive_optimal_value(
+    tmp_path: Path, bad_optimal: float
+) -> None:
+    _write_minimal_recife_fixture(tmp_path, {"optimal_value": bad_optimal})
+    with pytest.raises(ValueError, match="optimal_value must be positive"):
+        load_recife(tmp_path)
