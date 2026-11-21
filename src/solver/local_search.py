@@ -7,7 +7,7 @@ from collections.abc import Sequence
 import numpy as np
 
 from src.data.models import CVRPInstance
-from src.solver.decoder import decode_giant_tour, total_distance
+from src.solver.decoder import decode_giant_tour, evaluate_giant_tour, total_distance
 
 
 def _segment_cost(
@@ -48,10 +48,12 @@ def two_opt_route(
                 next_j = depot if j == m - 1 else cur[j + 1]
                 if symmetric:
                     old_cost = float(
-                        distance_matrix[prev_i, cur[i]] + distance_matrix[cur[j], next_j]
+                        distance_matrix[prev_i, cur[i]]
+                        + distance_matrix[cur[j], next_j]
                     )
                     new_cost = float(
-                        distance_matrix[prev_i, cur[j]] + distance_matrix[cur[i], next_j]
+                        distance_matrix[prev_i, cur[j]]
+                        + distance_matrix[cur[i], next_j]
                     )
                 else:
                     sub = cur[i : j + 1]
@@ -100,7 +102,12 @@ def lamarckian_two_opt(
     symmetric: bool | None = None,
     max_passes: int = 20,
 ) -> tuple[np.ndarray, float]:
-    """Apply 2-opt to decoded routes and write back only on strict improvement."""
+    """Apply 2-opt to decoded routes and write back only on strict re-decoded improvement.
+
+    Re-evaluates the concatenated customer permutation with ``evaluate_giant_tour``
+    under the greedy capacity-split decoder before committing, so greedy-split
+    boundary shifts cannot introduce stale or inflated fitness values.
+    """
     routes, orig_dist = decode_giant_tour(permutation, instance)
     improved_routes, new_dist = two_opt_solution(
         routes, instance, symmetric=symmetric, max_passes=max_passes
@@ -110,5 +117,7 @@ def lamarckian_two_opt(
             [c for route in improved_routes for c in route],
             dtype=permutation.dtype,
         )
-        return new_perm, new_dist
+        redecoded_dist = evaluate_giant_tour(new_perm, instance)
+        if redecoded_dist < orig_dist - 1e-12:
+            return new_perm, redecoded_dist
     return permutation, orig_dist

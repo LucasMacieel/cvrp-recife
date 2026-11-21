@@ -29,19 +29,19 @@
     }
   },
   "Memetic_GA": {
-    "best_objective": 10.690604,
-    "best_trial_number": 17,
+    "best_objective": 11.820712,
+    "best_trial_number": 24,
     "config": {
-      "pop_size": 110,
-      "crossover_rate": 0.825149,
-      "mutation_rate": 0.410824,
-      "tournament_k": 6,
-      "elite_size": 2,
+      "pop_size": 120,
+      "crossover_rate": 0.857372,
+      "mutation_rate": 0.252034,
+      "tournament_k": 3,
+      "elite_size": 5,
       "crossover": "OX",
       "mutation": "Inversion",
       "memetic": true,
-      "local_search_rate": 0.513344,
-      "local_search_max_passes": 5
+      "local_search_rate": 0.476335,
+      "local_search_max_passes": 10
     }
   }
 }
